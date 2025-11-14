@@ -62,6 +62,7 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "GEMINI_API_KEY=test_key_for_ci" >> .env
+          echo "GEMINI_MODEL=gemini-2.5-flash" >> .env
           echo "TELEGRAM_TOKEN=test_token_for_ci" >> .env
           echo "VITE_TELEGRAM_BOT_USERNAME=test_bot" >> .env
           echo "DB_CONNECTION=pgsql" >> .env

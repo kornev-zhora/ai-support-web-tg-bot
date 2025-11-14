@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import axios from 'axios';
+import { renderMarkdown } from '@/composables/useMarkdown';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -121,6 +122,18 @@ function handleKeypress(event: KeyboardEvent) {
         sendMessage();
     }
 }
+
+// Render message content (markdown for AI, plain text for user)
+function getMessageHtml(message: Message): string {
+    if (message.role === 'assistant') {
+        return renderMarkdown(message.content);
+    }
+    // For user messages, escape HTML and preserve line breaks
+    return message.content.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+}
 </script>
 
 <template>
@@ -176,11 +189,19 @@ function handleKeypress(event: KeyboardEvent) {
                                 message.role === 'user'
                                     ? 'bg-blue-500 text-white'
                                     : 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white',
+                                message.role === 'assistant' ? 'prose prose-sm dark:prose-invert max-w-none' : '',
                             ]"
                         >
-                            <p class="whitespace-pre-wrap break-words">
-                                {{ message.content }}
-                            </p>
+                            <div
+                                v-if="message.role === 'assistant'"
+                                class="markdown-content"
+                                v-html="getMessageHtml(message)"
+                            ></div>
+                            <p
+                                v-else
+                                class="whitespace-pre-wrap break-words"
+                                v-html="getMessageHtml(message)"
+                            ></p>
                         </div>
                     </div>
 

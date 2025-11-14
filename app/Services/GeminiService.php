@@ -11,7 +11,7 @@ class GeminiService
 
     protected string $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
-    protected string $model = 'gemini-2.0-flash-exp';
+    protected string $model;
 
     /**
      * Create a new class instance.
@@ -19,6 +19,7 @@ class GeminiService
     public function __construct()
     {
         $this->apiKey = config('services.gemini.api_key');
+        $this->model = config('services.gemini.model', 'gemini-2.5-flash');
     }
 
     /**

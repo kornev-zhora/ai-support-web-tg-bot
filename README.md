@@ -194,6 +194,7 @@ http://localhost:8060
 | `DB_USERNAME` | Database username | sail |
 | `DB_PASSWORD` | Database password | password |
 | `GEMINI_API_KEY` | Google Gemini API key | - |
+| `GEMINI_MODEL` | Gemini model to use | gemini-2.5-flash |
 | `TELEGRAM_TOKEN` | Telegram bot token from @BotFather | - |
 | `VITE_TELEGRAM_BOT_USERNAME` | Bot username (without @) | - |
 
@@ -212,6 +213,75 @@ http://localhost:8060
 3. Follow the prompts to create your bot
 4. Copy the provided token to your `.env` file
 5. Copy your bot's username (without @) to `VITE_TELEGRAM_BOT_USERNAME`
+
+### Gemini Model Selection
+
+The application supports multiple Gemini AI models. Choose the model based on your use case and payment tier.
+
+#### Available Models
+
+| Model | Best For | Context Window |
+|-------|----------|----------------|
+| `gemini-2.5-flash` | **Recommended** - Fast responses, cost-effective, high volume | 1M tokens |
+| `gemini-2.5-pro` | Advanced reasoning, complex tasks, highest quality | 2M tokens |
+| `gemini-2.0-flash` | Legacy support, higher free tier limits | 1M tokens |
+
+Configure in `.env`:
+```env
+GEMINI_MODEL="gemini-2.5-flash"
+```
+
+#### Rate Limits by Tier
+
+Your rate limits depend on your Google Cloud billing tier:
+
+**Free Tier** (No billing enabled)
+| Model | RPM | TPM | RPD |
+|-------|-----|-----|-----|
+| gemini-2.5-flash | 10 | 250K | 250 |
+| gemini-2.5-pro | 2 | 125K | 50 |
+| gemini-2.0-flash | 15 | 1M | 200 |
+
+**Tier 1** (Billing enabled)
+| Model | RPM | TPM | RPD |
+|-------|-----|-----|-----|
+| gemini-2.5-flash | **1,000** | **1M** | 10K |
+| gemini-2.5-pro | 150 | 2M | 10K |
+| gemini-2.0-flash | 2,000 | 4M | unlimited |
+
+**Tier 2** ($250+ spent, 30+ days)
+| Model | RPM | TPM | RPD |
+|-------|-----|-----|-----|
+| gemini-2.5-flash | 2,000 | 3M | 100K |
+| gemini-2.5-pro | 1,000 | 5M | 50K |
+| gemini-2.0-flash | 10,000 | 10M | unlimited |
+
+**Tier 3** ($1,000+ spent, 30+ days)
+| Model | RPM | TPM | RPD |
+|-------|-----|-----|-----|
+| gemini-2.5-flash | 10,000 | 8M | unlimited |
+| gemini-2.5-pro | 2,000 | 8M | unlimited |
+| gemini-2.0-flash | 30,000 | 30M | unlimited |
+
+> **RPM** = Requests Per Minute | **TPM** = Tokens Per Minute | **RPD** = Requests Per Day
+
+#### Choosing Your Model
+
+**For Development/Testing:**
+- Use `gemini-2.0-flash` on free tier (15 RPM)
+- Switch to `gemini-2.5-flash` when you enable billing
+
+**For Production:**
+- **High volume, speed-critical**: `gemini-2.5-flash` (Tier 1: 1,000 RPM)
+- **Quality-critical, complex reasoning**: `gemini-2.5-pro`
+- **Budget-conscious with high limits**: `gemini-2.0-flash`
+
+**Rate Limit Management:**
+- Monitor your usage in [Google AI Studio](https://ai.google.dev)
+- Implement request queuing for high-traffic scenarios
+- Switch models as your tier increases
+
+For complete details, see the [official rate limits documentation](https://ai.google.dev/gemini-api/docs/rate-limits).
 
 ### Permission Issues
 

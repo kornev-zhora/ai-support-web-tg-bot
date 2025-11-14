@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MessageStat;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class ConversationService
 {
@@ -108,17 +108,18 @@ class ConversationService
     {
         $today = Carbon::today();
 
-        DB::table('message_stats')
-            ->updateOrInsert(
-                [
-                    'stat_date' => $today,
-                    'channel' => $channel,
-                ],
-                [
-                    'message_count' => DB::raw('message_count + 1'),
-                    'updated_at' => now(),
-                ]
-            );
+        $stat = MessageStat::firstOrCreate(
+            [
+                'stat_date' => $today,
+                'channel' => $channel,
+            ],
+            [
+                'message_count' => 0,
+                'conversation_count' => 0,
+            ]
+        );
+
+        $stat->increment('message_count');
     }
 
     /**
@@ -128,17 +129,17 @@ class ConversationService
     {
         $today = Carbon::today();
 
-        DB::table('message_stats')
-            ->updateOrInsert(
-                [
-                    'stat_date' => $today,
-                    'channel' => $channel,
-                ],
-                [
-                    'conversation_count' => DB::raw('conversation_count + 1'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
+        $stat = MessageStat::firstOrCreate(
+            [
+                'stat_date' => $today,
+                'channel' => $channel,
+            ],
+            [
+                'message_count' => 0,
+                'conversation_count' => 0,
+            ]
+        );
+
+        $stat->increment('conversation_count');
     }
 }
