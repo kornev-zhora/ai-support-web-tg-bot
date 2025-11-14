@@ -59,11 +59,14 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
+      - name: Set Test Environment Variables
+        run: |
+          echo "GEMINI_API_KEY=test_key_for_ci" >> .env
+          echo "TELEGRAM_TOKEN=test_token_for_ci" >> .env
+          echo "VITE_TELEGRAM_BOT_USERNAME=test_bot" >> .env
+
       - name: Build Assets
         run: npm run build
-
-      - name: Run Migrations
-        run: php artisan migrate --force
 
       - name: Tests
         run: ./vendor/bin/pest
