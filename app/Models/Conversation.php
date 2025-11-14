@@ -21,6 +21,7 @@ class Conversation extends Model
         'telegram_user_id',
         'telegram_username',
         'last_message_at',
+        'extra_data',
     ];
 
     /**
@@ -32,6 +33,7 @@ class Conversation extends Model
     {
         return [
             'last_message_at' => 'datetime',
+            'extra_data' => 'array',
         ];
     }
 }

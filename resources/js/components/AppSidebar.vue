@@ -11,13 +11,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { privacy } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Home, MessageSquare, LayoutGrid, Send } from 'lucide-vue-next';
+import { Home, MessageSquare, Send, PaperclipIcon } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
-const telegramBotUsername = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'YOUR_BOT_USERNAME').replace('@', '');
+const telegramBotUsername = (
+    import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'YOUR_BOT_USERNAME'
+).replace('@', '');
 
 const mainNavItems: NavItem[] = [
     {
@@ -31,9 +33,9 @@ const mainNavItems: NavItem[] = [
         icon: MessageSquare,
     },
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Privacy',
+        href: privacy(),
+        icon: PaperclipIcon,
     },
 ];
 
@@ -52,7 +54,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link href="/">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

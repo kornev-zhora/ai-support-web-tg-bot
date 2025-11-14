@@ -15,11 +15,18 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Chat routes
+// Chat routes (no auth required)
 Route::get('chat', [ChatController::class, 'index'])->name('chat');
 
+// Privacy policy
+Route::get('privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy');
+
 Route::prefix('api/chat')->group(function () {
-    Route::post('send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('send', [ChatController::class, 'sendMessage'])
+        ->middleware(\App\Http\Middleware\TrackChatStatistics::class)
+        ->name('chat.send');
     Route::get('history/{sessionId}', [ChatController::class, 'history'])->name('chat.history');
 });
 

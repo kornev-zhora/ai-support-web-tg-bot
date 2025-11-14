@@ -3,15 +3,16 @@
 namespace App\Telegram;
 
 use App\Services\ConversationService;
+use App\Services\TelegramCommandProvider;
 use DefStudio\Telegraph\Handlers\WebhookHandler;
 use Illuminate\Support\Stringable;
 
 class SupportBotHandler extends WebhookHandler
 {
     public function __construct(
-        private readonly ConversationService $conversationService
-    )
-    {
+        private readonly ConversationService $conversationService,
+        private readonly TelegramCommandProvider $commandProvider
+    ) {
         parent::__construct();
     }
 
@@ -20,12 +21,21 @@ class SupportBotHandler extends WebhookHandler
      */
     protected function handleChatMessage(Stringable $text): void
     {
+        $message = (string) $text;
+
+        // Handle settings menu interactions
+        if ($this->isSettingsMessage($message)) {
+            $this->handleSettingsMessage($message);
+
+            return;
+        }
+
         $chatId = $this->chat->chat_id;
 
         // Find or create conversation
         $conversation = $this->conversationService->findOrCreateConversation(
             channel: 'telegram',
-            userIdentifier: (string)$chatId,
+            userIdentifier: (string) $chatId,
             extraData: [
                 'telegram_user_id' => $this->message->from()->id(),
                 'telegram_username' => $this->message->from()->username(),
@@ -35,29 +45,51 @@ class SupportBotHandler extends WebhookHandler
         // Process message and get AI response
         $aiResponse = $this->conversationService->processMessage(
             conversation: $conversation,
-            userMessage: (string)$text
+            userMessage: (string) $text
         );
 
         if ($aiResponse) {
             $this->reply($aiResponse);
-        } else {
-            $this->reply('Sorry, I encountered an error processing your message. Please try again later.');
+
+            return;
         }
+
+        $this->reply('Sorry, I encountered an error processing your message. Please try again later.');
     }
 
-    /**
-     * Handle /start command.
-     */
-    public function start(): void
+    private function isSettingsMessage(string $message): bool
     {
-        $this->reply('Hello! I am your AI support assistant. How can I help you today?');
+        return str_contains($message, 'Gender') || str_contains($message, 'Language') ||
+               str_contains($message, 'Support Topic') || str_contains($message, 'Location') ||
+               str_contains($message, 'Close Settings');
     }
 
-    /**
-     * Handle /help command.
-     */
-    public function help(): void
+    private function handleSettingsMessage(string $message): void
     {
-        $this->reply("I'm an AI support bot powered by Gemini. Just send me a message and I'll do my best to help you!");
+        if (str_contains($message, 'Close Settings')) {
+            $this->chat
+                ->message('⚙️ Settings closed.')
+                ->removeReplyKeyboard()
+                ->send();
+
+            return;
+        }
+        $this->reply('Settings menu selected: '.$message);
+
+    }
+
+    protected function handleCommand(Stringable $text): void
+    {
+        [$command, $parameter] = $this->parseCommand($text);
+
+        $commandHandler = $this->commandProvider->provide($command);
+
+        if ($commandHandler === null) {
+            $this->handleUnknownCommand($text);
+
+            return;
+        }
+
+        $commandHandler->run($this, $parameter);
     }
 }

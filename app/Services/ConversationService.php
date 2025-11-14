@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Conversation;
-use App\Models\MessageStat;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis;
 
 class ConversationService
@@ -31,8 +29,6 @@ class ConversationService
                 'telegram_username' => $extraData['telegram_username'] ?? null,
                 'last_message_at' => now(),
             ]);
-
-            $this->incrementConversationCount($channel);
         }
 
         return $conversation;
@@ -89,8 +85,6 @@ class ConversationService
             'last_message_at' => now(),
         ]);
 
-        $this->incrementMessageCount($conversation->channel);
-
         return $message;
     }
 
@@ -136,47 +130,5 @@ class ConversationService
     private function getMessagesKey(int $conversationId): string
     {
         return "conversation:{$conversationId}:messages";
-    }
-
-    /**
-     * Increment message count for billing stats.
-     */
-    private function incrementMessageCount(string $channel): void
-    {
-        $today = Carbon::today();
-
-        $stat = MessageStat::firstOrCreate(
-            [
-                'stat_date' => $today,
-                'channel' => $channel,
-            ],
-            [
-                'message_count' => 0,
-                'conversation_count' => 0,
-            ]
-        );
-
-        $stat->increment('message_count');
-    }
-
-    /**
-     * Increment conversation count for billing stats.
-     */
-    private function incrementConversationCount(string $channel): void
-    {
-        $today = Carbon::today();
-
-        $stat = MessageStat::firstOrCreate(
-            [
-                'stat_date' => $today,
-                'channel' => $channel,
-            ],
-            [
-                'message_count' => 0,
-                'conversation_count' => 0,
-            ]
-        );
-
-        $stat->increment('conversation_count');
     }
 }

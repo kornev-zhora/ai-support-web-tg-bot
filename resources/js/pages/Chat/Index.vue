@@ -8,7 +8,7 @@ import { renderMarkdown } from '@/composables/useMarkdown';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'AI Support Chat',
+        title: 'Chat',
         href: '/chat',
     },
 ];

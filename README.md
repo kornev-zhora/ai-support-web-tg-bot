@@ -9,6 +9,8 @@
 
 An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Google Gemini API. This application provides seamless integration with Telegram to deliver automated customer support with cutting-edge AI capabilities.
 
+**🤖 Try the live bot**: [@saslkdjxn_bot](https://t.me/saslkdjxn_bot)
+
 ## 📋 Table of Contents
 
 - [Features](#-features)
@@ -46,6 +48,12 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 ### Web Bot Interface
 ![Web Bot](docs/images/chat.png)
 
+### Privacy
+![Privacy Policy](docs/images/Privacy%20Policy%20-%20AI%20Support%20Bot.png)
+
+### Telegram Bot Interface
+![Telegram Bot](docs/images/tg-chat.png)
+*Chat with the bot on Telegram: [@saslkdjxn_bot](https://t.me/saslkdjxn_bot)*
 
 > **Note**: Add your screenshots to the `docs/images/` directory
 
