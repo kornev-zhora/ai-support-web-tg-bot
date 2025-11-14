@@ -89,7 +89,12 @@ jobs:
         run: npm run build
 
       - name: Run Migrations
+        env:
+          DB_HOST: 127.0.0.1
         run: php artisan migrate --force
 
       - name: Run Tests
+        env:
+          DB_HOST: 127.0.0.1
+          REDIS_HOST: 127.0.0.1
         run: ./vendor/bin/pest --stop-on-failure
