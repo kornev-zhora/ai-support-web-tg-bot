@@ -467,6 +467,33 @@ Or adjust `WWWUSER` and `WWWGROUP` in `.env` to match your system IDs.
 ./vendor/bin/sail composer dump-autoload
 ```
 
+### GitHub Actions Failing
+
+If your GitHub Actions tests are failing:
+
+1. **Check the workflow logs** on GitHub for specific error messages
+
+2. **Verify PostgreSQL configuration:**
+   - Ensure `.github/workflows/tests.yml` has the PostgreSQL service configured
+   - Check that `phpunit.xml` has the correct database settings
+
+3. **Run tests locally first:**
+```bash
+./vendor/bin/sail artisan test
+```
+
+4. **Common issues:**
+   - **Database connection errors**: Verify PostgreSQL service is configured in workflow
+   - **Missing environment variables**: Check that GEMINI_API_KEY and TELEGRAM_TOKEN are set
+   - **Asset build failures**: Ensure `npm run build` completes successfully locally
+   - **PHPStan errors**: Run `./vendor/bin/sail composer phpstan` locally to fix type issues
+   - **Code style issues**: Run `./vendor/bin/sail pint` to fix formatting
+
+5. **Debug workflow:**
+   - Add `run: php artisan about` step to check Laravel configuration
+   - Add `run: php -v` and `php -m` to verify PHP and extensions
+   - Check PostgreSQL connection with `pg_isready` command
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
