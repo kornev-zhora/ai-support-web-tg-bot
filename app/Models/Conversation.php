@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Conversation extends Model
 {
@@ -34,15 +33,5 @@ class Conversation extends Model
         return [
             'last_message_at' => 'datetime',
         ];
-    }
-
-    /**
-     * Get the messages for the conversation.
-     *
-     * @return HasMany<Message, $this>
-     */
-    public function messages(): HasMany
-    {
-        return $this->hasMany(Message::class);
     }
 }

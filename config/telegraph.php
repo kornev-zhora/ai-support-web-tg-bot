@@ -25,6 +25,7 @@ return [
         /*
          * Sets the webhook URL that will be exposed by the server,
          * this can be customized or entirely disabled (by setting it to NULL)
+         * For reference, see https://docs.defstudio.it/telegraph/v1/webhooks/overview
          */
         'url' => env('TELEGRAPH_WEBHOOK_URL', '/telegraph/{token}/webhook'),
 

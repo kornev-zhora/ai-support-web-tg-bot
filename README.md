@@ -30,9 +30,10 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 - **AI-Powered Responses**: Leverages Google Gemini AI for intelligent, context-aware responses
 - **Telegram Integration**: Seamless bot integration with Telegram for instant messaging
 - **Modern Stack**: Built with Laravel 12 and Vue.js 3 using Inertia.js for a smooth SPA experience
+- **Redis Caching**: Messages stored in Redis with 24-hour TTL for optimal performance
 - **Real-time Updates**: Responsive UI with hot module replacement during development
 - **Secure Authentication**: Built-in authentication with Laravel Fortify
-- **Database Persistence**: PostgreSQL 17 for reliable data storage
+- **Database Persistence**: PostgreSQL 17 for conversation metadata and statistics
 - **Docker Ready**: Fully containerized with Laravel Sail for easy deployment
 - **Type Safety**: TypeScript support with Laravel Wayfinder for route generation
 
@@ -54,6 +55,7 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 - **Laravel 12** - PHP framework for web artisans
 - **PHP 8.4** - Latest PHP version with performance improvements
 - **PostgreSQL 17** - Advanced open-source relational database
+- **Redis 7** - In-memory data store for message caching (24-hour TTL)
 - **Laravel Fortify** - Backend authentication scaffolding
 - **Laravel Sail** - Docker development environment
 
@@ -182,7 +184,7 @@ http://localhost:8060
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `APP_NAME` | Application name | Laravel |
+| `APP_NAME` | Application name | AI Support Bot |
 | `APP_PORT` | Port for the web application | 8060 |
 | `APP_URL` | Application URL | http://localhost:8060 |
 | `WWWUSER` | Docker user ID for file permissions | 1000 |
@@ -193,10 +195,15 @@ http://localhost:8060
 | `DB_DATABASE` | Database name | laravel |
 | `DB_USERNAME` | Database username | sail |
 | `DB_PASSWORD` | Database password | password |
+| `REDIS_HOST` | Redis host (Docker service name) | redis |
+| `REDIS_PORT` | Redis port | 6379 |
+| `REDIS_PASSWORD` | Redis password (optional) | null |
 | `GEMINI_API_KEY` | Google Gemini API key | - |
 | `GEMINI_MODEL` | Gemini model to use | gemini-2.5-flash |
 | `TELEGRAM_TOKEN` | Telegram bot token from @BotFather | - |
 | `VITE_TELEGRAM_BOT_USERNAME` | Bot username (without @) | - |
+
+> **Note**: Chat messages are stored in Redis with a 24-hour TTL (Time To Live). After 24 hours, messages are automatically deleted to optimize storage and performance. Conversation metadata and statistics are permanently stored in PostgreSQL.
 
 ### Getting API Keys
 

@@ -11,7 +11,7 @@ use Inertia\Response;
 class ChatController extends Controller
 {
     public function __construct(
-        private ConversationService $conversationService
+        private readonly ConversationService $conversationService
     ) {}
 
     /**
@@ -19,7 +19,9 @@ class ChatController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Chat/Index');
+        return Inertia::render('Chat/Index', [
+            'conversations' => [],
+        ]);
     }
 
     /**
@@ -60,14 +62,7 @@ class ChatController extends Controller
             userIdentifier: $sessionId
         );
 
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(fn (\App\Models\Message $message) => [
-                'role' => $message->role,
-                'content' => $message->content,
-                'created_at' => $message->created_at->toIso8601String(),
-            ]);
+        $messages = $this->conversationService->getMessages($conversation->id);
 
         return response()->json([
             'success' => true,

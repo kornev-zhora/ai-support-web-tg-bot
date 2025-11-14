@@ -3,14 +3,14 @@
 namespace App\Services;
 
 use App\Models\Conversation;
-use App\Models\Message;
 use App\Models\MessageStat;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Redis;
 
 class ConversationService
 {
     public function __construct(
-        private GeminiService $geminiService
+        private readonly GeminiService $geminiService
     ) {}
 
     /**
@@ -61,15 +61,29 @@ class ConversationService
     }
 
     /**
-     * Store a message in the conversation.
+     * Store a message in the conversation (Redis cache with 24-hour TTL).
+     *
+     * @return array{role: string, content: string, created_at: string}
      */
-    public function storeMessage(Conversation $conversation, string $role, string $content): Message
+    public function storeMessage(Conversation $conversation, string $role, string $content): array
     {
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
+        $message = [
             'role' => $role,
             'content' => $content,
-        ]);
+            'created_at' => now()->toIso8601String(),
+        ];
+
+        // Get Redis key for conversation messages
+        $key = $this->getMessagesKey($conversation->id);
+
+        // Get existing messages
+        $messages = $this->getMessages($conversation->id);
+
+        // Add new message
+        $messages[] = $message;
+
+        // Store in Redis with 24-hour TTL (86400 seconds)
+        Redis::setex($key, 86400, json_encode($messages));
 
         $conversation->update([
             'last_message_at' => now(),
@@ -87,18 +101,41 @@ class ConversationService
      */
     public function getConversationHistory(Conversation $conversation, int $limit = 20): array
     {
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get()
-            ->reverse()
-            ->map(fn (\App\Models\Message $message) => [
-                'role' => $message->role,
-                'content' => $message->content,
-            ])
-            ->toArray();
+        $messages = $this->getMessages($conversation->id);
 
-        return $messages;
+        // Get last N messages
+        $messages = array_slice($messages, -$limit);
+
+        // Return only role and content for AI
+        return array_map(fn (array $message) => [
+            'role' => $message['role'],
+            'content' => $message['content'],
+        ], $messages);
+    }
+
+    /**
+     * Get all messages for a conversation from Redis.
+     *
+     * @return array<int, array{role: string, content: string, created_at: string}>
+     */
+    public function getMessages(int $conversationId): array
+    {
+        $key = $this->getMessagesKey($conversationId);
+        $data = Redis::get($key);
+
+        if (! $data) {
+            return [];
+        }
+
+        return json_decode($data, true) ?? [];
+    }
+
+    /**
+     * Get Redis key for conversation messages.
+     */
+    private function getMessagesKey(int $conversationId): string
+    {
+        return "conversation:{$conversationId}:messages";
     }
 
     /**

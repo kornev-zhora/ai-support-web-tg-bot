@@ -1,14 +1,20 @@
 <?php
 
 use App\Models\Conversation;
-use App\Models\Message;
 use App\Models\MessageStat;
+use App\Services\ConversationService;
 use App\Services\GeminiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Redis;
 
 use function Pest\Laravel\mock;
 
 uses(RefreshDatabase::class);
+
+// Clear Redis before each test
+beforeEach(function () {
+    Redis::flushdb();
+});
 
 test('chat page can be rendered', function () {
     $response = $this->get('/chat');
@@ -42,15 +48,16 @@ test('can send a message and receive ai response', function () {
         'user_identifier' => $sessionId,
     ]);
 
-    // Verify messages were stored
+    // Verify messages were stored in Redis
     $conversation = Conversation::query()->where('user_identifier', $sessionId)->first();
-    expect($conversation->messages()->count())->toBe(2);
+    $conversationService = app(ConversationService::class);
+    $messages = $conversationService->getMessages($conversation->id);
 
-    $messages = $conversation->messages()->orderBy('created_at')->get();
-    expect($messages[0]->role)->toBe('user');
-    expect($messages[0]->content)->toBe('Hello, AI!');
-    expect($messages[1]->role)->toBe('assistant');
-    expect($messages[1]->content)->toBe('This is a test AI response');
+    expect($messages)->toHaveCount(2);
+    expect($messages[0]['role'])->toBe('user');
+    expect($messages[0]['content'])->toBe('Hello, AI!');
+    expect($messages[1]['role'])->toBe('assistant');
+    expect($messages[1]['content'])->toBe('This is a test AI response');
 
     // Verify stats were updated
     $this->assertDatabaseHas('message_stats', [
@@ -96,17 +103,10 @@ test('can retrieve conversation history', function () {
         'last_message_at' => now(),
     ]);
 
-    Message::create([
-        'conversation_id' => $conversation->id,
-        'role' => 'user',
-        'content' => 'First message',
-    ]);
-
-    Message::create([
-        'conversation_id' => $conversation->id,
-        'role' => 'assistant',
-        'content' => 'First response',
-    ]);
+    // Store messages in Redis
+    $conversationService = app(ConversationService::class);
+    $conversationService->storeMessage($conversation, 'user', 'First message');
+    $conversationService->storeMessage($conversation, 'assistant', 'First response');
 
     $response = $this->getJson("/api/chat/history/{$sessionId}");
 
