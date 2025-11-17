@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: [self-hosted, linux, raspi-deploy] # Використовуємо ваш Raspberry Pi Runner
+    environment: raspberry
     steps:
       - name: 1. Get Image Tag from Payload
         # Отримуємо тег образу, який щойно був зібраний (використовуємо SHA коміту)
