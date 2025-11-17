@@ -30,11 +30,13 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./docker/8.4
-          file: ./docker/8.4/Dockerfile
+          context: .
+          file: ./docker/production/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ github.sha }}, ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:latest
-          platforms: linux/arm64 # !!! КЛЮЧОВИЙ МОМЕНТ: Збірка під архітектуру Raspberry Pi
+          platforms: linux/arm64 # Production build for Raspberry Pi ARM64
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache,mode=max
 
       - name: Dispatch Deployment Job to Pi Runner
         # Після успішної збірки, ми "повідомляємо" Raspberry Pi Runner
