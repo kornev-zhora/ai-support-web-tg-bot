@@ -79,8 +79,10 @@ COPY --chown=sail:sail . /var/www/html
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # Install NPM dependencies and build assets
+# Note: Vite variables are baked into the build, but for bot username we can use a placeholder
+# The actual bot interaction happens server-side via TELEGRAPH_BOT_NAME
 RUN npm ci --production=false \
-    && npm run build \
+    && VITE_TELEGRAM_BOT_USERNAME="placeholder" VITE_APP_NAME="AI Support Bot" npm run build \
     && rm -rf node_modules \
     && npm cache clean --force
 
