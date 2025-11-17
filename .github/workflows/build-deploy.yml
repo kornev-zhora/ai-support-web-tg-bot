@@ -8,6 +8,9 @@ jobs:
   build_push_image:
     runs-on: ubuntu-latest # Використовуємо GitHub-hosted runner для збірки
     environment: raspberry
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -42,7 +45,7 @@ jobs:
         # Після успішної збірки, ми "повідомляємо" Raspberry Pi Runner
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.RASPI_DEPLOY_TOKEN }} # Токен для виконання наступного Workflow
+          token: ${{ secrets.RASPI_DEPLOY_TOKEN }} # PAT with repo + workflow scopes
           repository: ${{ github.repository }}
           event-type: deploy-to-raspi
           client-payload: '{"image_tag": "${{ github.sha }}"}'
