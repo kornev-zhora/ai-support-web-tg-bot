@@ -22,9 +22,15 @@ jobs:
 
       - name: 2. Login to Docker Hub
         # Потрібен для отримання приватного образу
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: 3. Setup Project Directory
+      - name: 3. Stop Application Container
+        run: |
+          # Stop and remove only the application container to preserve database data
+          docker stop $(docker ps -aq --filter "name=ai-support-bot") 2>/dev/null || true
+          docker rm $(docker ps -aq --filter "name=ai-support-bot") 2>/dev/null || true
+
+      - name: 4. Setup Project Directory
         run: |
           # Create project directory structure
           mkdir -p /projects/ai-support-bot
@@ -34,7 +40,7 @@ jobs:
           mkdir -p data/database data/storage data/cache data/redis
           chmod -R 777 data
 
-      - name: 4. Checkout Compose Files
+      - name: 5. Checkout Compose Files
         run: |
           cd /projects/ai-support-bot
 
@@ -52,7 +58,7 @@ jobs:
           # Rename production override to be used
           cp compose.override.production.yml compose.override.yml
 
-      - name: 5. Create .env File
+      - name: 6. Create .env File
         run: |
           cd /projects/ai-support-bot
 
@@ -72,12 +78,12 @@ jobs:
           MAIL_MAILER="${{ vars.MAIL_MAILER || 'log' }}"
           EOF
 
-      - name: 6. Pull Latest Image
+      - name: 7. Pull Latest Image
         run: |
           cd /projects/ai-support-bot
           docker pull ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
 
-      - name: 7. Deploy with Docker Compose
+      - name: 8. Deploy with Docker Compose
         run: |
           cd /projects/ai-support-bot
 
@@ -90,14 +96,14 @@ jobs:
           # Wait for services to be healthy
           sleep 10
 
-      - name: 8. Run Database Migrations
+      - name: 9. Run Database Migrations
         run: |
           cd /projects/ai-support-bot
 
           # Run migrations to create database and tables
           docker compose exec -T ai-support-bot php artisan migrate --force
 
-      - name: 9. Verify Deployment
+      - name: 10. Verify Deployment
         run: |
           cd /projects/ai-support-bot
 
