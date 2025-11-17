@@ -46,11 +46,12 @@ jobs:
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-          # Запустіть новий контейнер, використовуючи необхідні порти та змінні середовища
+          # Run container with .env file from Raspberry Pi
           docker run -d \
           --name ai-support-bot \
+          --restart unless-stopped \
           -p 80:80 \
-          -e APP_ENV=production \
+          --env-file /home/github/.env.production \
           $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
       - name: 5. Deployment Completed on Raspberry Pi
