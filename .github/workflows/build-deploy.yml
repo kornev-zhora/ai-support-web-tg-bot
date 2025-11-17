@@ -7,6 +7,7 @@ on:
 jobs:
   build_push_image:
     runs-on: ubuntu-latest # Використовуємо GitHub-hosted runner для збірки
+    environment: raspberry
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
