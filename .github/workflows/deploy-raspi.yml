@@ -151,8 +151,11 @@ jobs:
         run: |
           cd /projects/ai-support-bot
 
+          # Wait for container to be fully ready
+          sleep 5
+          
           # Run migrations to create database and tables
-          docker compose exec -T ai-support-bot php artisan migrate --force
+          docker compose exec -T ai-support-bot php /var/www/html/artisan migrate --force
 
       - name: 11. Verify Deployment
         run: |
