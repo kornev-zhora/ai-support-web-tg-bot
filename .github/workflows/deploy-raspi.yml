@@ -36,9 +36,24 @@ jobs:
           mkdir -p /projects/ai-support-bot
           cd /projects/ai-support-bot
 
-          # Create data directories
-          mkdir -p data/database data/storage data/cache data/redis
-          chmod -R 777 data
+          # Create data directories and subdirectories for proper volume mounting
+          mkdir -p data/database
+          mkdir -p data/storage/app/public
+          mkdir -p data/storage/framework/cache/data
+          mkdir -p data/storage/framework/sessions
+          mkdir -p data/storage/framework/testing
+          mkdir -p data/storage/framework/views
+          mkdir -p data/storage/logs
+          mkdir -p data/cache
+          mkdir -p data/redis
+
+          # Create SQLite database file if it doesn't exist
+          touch data/database/database.sqlite
+
+          # Set proper ownership (github user on host, 1337 is 'sail' user in container)
+          # Use current user (github) for host access, but ensure container can write
+          sudo chown -R github:github data
+          sudo chmod -R 777 data
 
       - name: 5. Checkout Compose Files
         run: |
@@ -95,11 +110,19 @@ jobs:
           # Stop and remove old containers
           docker compose down
 
+          # Ensure permissions are correct before starting containers
+          sudo chown -R github:github data
+          sudo chmod -R 777 data
+
           # Start services with new image
           docker compose up -d
 
           # Wait for services to be healthy
           sleep 10
+
+          # Fix permissions after container creates any new files
+          sudo chown -R github:github data
+          sudo chmod -R 777 data
 
       - name: 9. Run Database Migrations
         run: |
