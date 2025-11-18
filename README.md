@@ -7,6 +7,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?style=flat&logo=postgresql)](https://www.postgresql.org)
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat&logo=php)](https://php.net)
 
+[![Tests](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml)
+[![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen?style=flat&logo=github)](https://github.com/BorschCode/ai-support-web-tg-bot/actions)
+
 An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Google Gemini API. This application provides seamless integration with Telegram to deliver automated customer support with cutting-edge AI capabilities.
 
 **🤖 Try the live bot**: [@saslkdjxn_bot](https://t.me/saslkdjxn_bot)
