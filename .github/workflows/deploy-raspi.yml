@@ -89,12 +89,12 @@ jobs:
             git clone --depth 1 --single-branch --branch ${{ github.ref_name }} \
               https://github.com/${{ github.repository }}.git temp
             mv temp/compose.yaml .
-            mv temp/compose.override.production.yml .
+            mv temp/compose.override.raspberry.yml .
             rm -rf temp
           fi
 
-          # Rename production override to be used
-          cp compose.override.production.yml compose.override.yml
+          # Use Raspberry Pi specific compose override
+          cp compose.override.raspberry.yml compose.override.yml
 
       - name: 7. Create .env File
         run: |
