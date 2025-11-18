@@ -26,18 +26,26 @@ jobs:
 
       - name: 3. Verify Sudo Access
         run: |
-          # Verify passwordless sudo is configured for the github user
-          if ! sudo -n true 2>/dev/null; then
+          # Verify restricted passwordless sudo is configured for deployment commands
+          if ! sudo -n /usr/bin/chown --version > /dev/null 2>&1; then
             echo "❌ ERROR: Passwordless sudo is not configured for the github user!"
             echo ""
-            echo "Please configure passwordless sudo on your Raspberry Pi:"
-            echo "  echo 'github ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/github"
-            echo "  sudo chmod 0440 /etc/sudoers.d/github"
-            echo "  sudo visudo -c"
+            echo "Please configure RESTRICTED passwordless sudo on your Raspberry Pi:"
             echo ""
+            echo "sudo tee /etc/sudoers.d/github-deploy <<'EOF'"
+            echo "# Restricted sudo for GitHub Actions deployment"
+            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chown -R github\:github /projects/ai-support-bot/data*"
+            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chmod -R 777 /projects/ai-support-bot/data*"
+            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chmod -R 775 /projects/ai-support-bot/data*"
+            echo "EOF"
+            echo ""
+            echo "sudo chmod 0440 /etc/sudoers.d/github-deploy"
+            echo "sudo visudo -c"
+            echo ""
+            echo "This only allows chown/chmod on /projects/ai-support-bot/data - much more secure!"
             exit 1
           fi
-          echo "✅ Passwordless sudo is properly configured"
+          echo "✅ Restricted passwordless sudo is properly configured"
 
       - name: 4. Stop Application Container
         run: |
@@ -65,10 +73,10 @@ jobs:
           # Create SQLite database file if it doesn't exist
           touch data/database/database.sqlite
 
-          # Set proper ownership (github user on host, 1337 is 'sail' user in container)
-          # Use current user (github) for host access, but ensure container can write
+          # Set proper ownership and permissions
+          # Use sudo only for chown (required when files are owned by container user)
           sudo chown -R github:github data
-          sudo chmod -R 777 data
+          chmod -R 777 data
 
       - name: 6. Checkout Compose Files
         run: |
@@ -127,7 +135,7 @@ jobs:
 
           # Ensure permissions are correct before starting containers
           sudo chown -R github:github data
-          sudo chmod -R 777 data
+          chmod -R 777 data
 
           # Start services with new image
           docker compose up -d
@@ -137,7 +145,7 @@ jobs:
 
           # Fix permissions after container creates any new files
           sudo chown -R github:github data
-          sudo chmod -R 777 data
+          chmod -R 777 data
 
       - name: 10. Run Database Migrations
         run: |
