@@ -12,10 +12,11 @@ services:
     ports:
       - '${APP_PORT:-80}:80'
 
-    # Production volumes - NO VOLUMES
-    # The application code is baked into the Docker image
-    # We intentionally do NOT mount ANY volumes to avoid wiping out the application
-    volumes: []
+    # Production volumes - use named volumes for data persistence
+    # Named volumes preserve container data without wiping out application files
+    volumes:
+      - database-data:/var/www/html/database
+      - storage-data:/var/www/html/storage
 
     # Production environment variables
     environment:
@@ -70,17 +71,21 @@ services:
       retries: 3
       start_period: 40s
 
-  # Remove PostgreSQL in production (using SQLite instead)
-  pgsql:
-    image: null
-    restart: "no"
-    deploy:
-      replicas: 0
+# PostgreSQL removed in production (using SQLite instead)
 
   # Keep Redis but with production settings
   redis:
     restart: unless-stopped
     ports: []  # Don't expose Redis port externally
     volumes:
-      - /projects/ai-support-bot/data/redis:/data
+      - redis-data:/data  # Use Docker named volume
     command: redis-server --appendonly yes
+
+# Named volumes for data persistence
+volumes:
+  database-data:
+    driver: local
+  storage-data:
+    driver: local
+  redis-data:
+    driver: local
