@@ -76,6 +76,11 @@ jobs:
           TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
           TELEGRAPH_WEBHOOK_URL="${{ vars.TELEGRAPH_WEBHOOK_URL }}"
           MAIL_MAILER="${{ vars.MAIL_MAILER || 'log' }}"
+          WWWUSER=${{ vars.WWWUSER || '1000' }}
+          WWWGROUP=${{ vars.WWWGROUP || '1000' }}
+          DB_DATABASE=${{ vars.DB_DATABASE || 'unused' }}
+          DB_USERNAME=${{ vars.DB_USERNAME || 'unused' }}
+          DB_PASSWORD=${{ vars.DB_PASSWORD || 'unused' }}
           EOF
 
       - name: 7. Pull Latest Image
