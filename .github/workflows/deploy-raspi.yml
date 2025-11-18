@@ -22,155 +22,76 @@ jobs:
 
       - name: 2. Login to Docker Hub
         # Потрібен для отримання приватного образу
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 3. Verify Sudo Access
+      - name: 3. Pull and Stop Old Container
+        # Отримання нового образу та зупинка старого контейнера
         run: |
-          # Verify restricted passwordless sudo is configured for deployment commands
-          if ! sudo -n /usr/bin/chown --version > /dev/null 2>&1; then
-            echo "❌ ERROR: Passwordless sudo is not configured for the github user!"
-            echo ""
-            echo "Please configure RESTRICTED passwordless sudo on your Raspberry Pi:"
-            echo ""
-            echo "sudo tee /etc/sudoers.d/github-deploy <<'EOF'"
-            echo "# Restricted sudo for GitHub Actions deployment"
-            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chown -R github\:github /projects/ai-support-bot/data*"
-            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chmod -R 777 /projects/ai-support-bot/data*"
-            echo "github ALL=(ALL) NOPASSWD: /usr/bin/chmod -R 775 /projects/ai-support-bot/data*"
-            echo "EOF"
-            echo ""
-            echo "sudo chmod 0440 /etc/sudoers.d/github-deploy"
-            echo "sudo visudo -c"
-            echo ""
-            echo "This only allows chown/chmod on /projects/ai-support-bot/data - much more secure!"
-            exit 1
-          fi
-          echo "✅ Restricted passwordless sudo is properly configured"
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-      - name: 4. Stop Application Container
-        run: |
-          # Stop and remove only the application container to preserve database data
-          docker stop $(docker ps -aq --filter "name=ai-support-bot") 2>/dev/null || true
-          docker rm $(docker ps -aq --filter "name=ai-support-bot") 2>/dev/null || true
+          # 3.1. Отримання нового образу
+          docker pull $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
-      - name: 5. Setup Project Directory
-        run: |
-          # Create project directory structure
-          mkdir -p /projects/ai-support-bot
-          cd /projects/ai-support-bot
-
-          # Create data directories and subdirectories for proper volume mounting
-          mkdir -p data/database
-          mkdir -p data/storage/app/public
-          mkdir -p data/storage/framework/cache/data
-          mkdir -p data/storage/framework/sessions
-          mkdir -p data/storage/framework/testing
-          mkdir -p data/storage/framework/views
-          mkdir -p data/storage/logs
-          mkdir -p data/cache
-          mkdir -p data/redis
-
-          # Create SQLite database file if it doesn't exist
-          touch data/database/database.sqlite
-
-          # Set proper ownership and permissions
-          # Use sudo only for chown (required when files are owned by container user)
-          sudo chown -R github:github data
-          chmod -R 777 data
-
-      - name: 6. Checkout Compose Files
-        run: |
-          cd /projects/ai-support-bot
-
-          # Clone or update repository (only compose files and config)
-          if [ -d ".git" ]; then
-            git pull origin ${{ github.ref_name }}
-          else
-            git clone --depth 1 --single-branch --branch ${{ github.ref_name }} \
-              https://github.com/${{ github.repository }}.git temp
-            mv temp/compose.yaml .
-            mv temp/compose.override.raspberry.yml .
-            rm -rf temp
+          # 3.2. Зупинка старого контейнера (якщо існує)
+          CONTAINER_ID=$(docker ps -aq --filter "name=ai-support-bot")
+          if [ ! -z "$CONTAINER_ID" ]; then
+            docker stop $CONTAINER_ID
+            docker rm $CONTAINER_ID
           fi
 
-          # Use Raspberry Pi specific compose override
-          cp compose.override.raspberry.yml compose.override.yml
+          # 3.3. Видалення старих образів
+          docker image prune -f
 
-      - name: 7. Create .env File
+      - name: 4. Run New Container
         run: |
-          cd /projects/ai-support-bot
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-          # Create .env file with GitHub Environment variables
-          cat > .env <<EOF
-          DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
-          APP_NAME="${{ vars.APP_NAME || 'AI Support Bot' }}"
-          APP_URL="${{ vars.APP_URL }}"
-          APP_PORT=${{ vars.APP_PORT || 80 }}
-          APP_KEY="${{ secrets.APP_KEY }}"
-          LOG_LEVEL="${{ vars.LOG_LEVEL || 'error' }}"
-          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-          GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}"
-          TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}"
-          TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
-          TELEGRAPH_WEBHOOK_URL="${{ vars.TELEGRAPH_WEBHOOK_URL }}"
-          MAIL_MAILER="${{ vars.MAIL_MAILER || 'log' }}"
-          WWWUSER=${{ vars.WWWUSER || '1000' }}
-          WWWGROUP=${{ vars.WWWGROUP || '1000' }}
-          DB_DATABASE=${{ vars.DB_DATABASE || 'unused' }}
-          DB_USERNAME=${{ vars.DB_USERNAME || 'unused' }}
-          DB_PASSWORD=${{ vars.DB_PASSWORD || 'unused' }}
-          EOF
+          # Run container with environment variables from GitHub Environment
+          docker run -d \
+          --name ai-support-bot \
+          --restart unless-stopped \
+          -p ${{ vars.APP_PORT || 80 }}:80 \
+          -v ai-support-bot-database:/var/www/html/database \
+          -v ai-support-bot-storage:/var/www/html/storage \
+          -e APP_NAME="${{ vars.APP_NAME || 'AI Support Bot' }}" \
+          -e APP_ENV=production \
+          -e APP_DEBUG=false \
+          -e APP_KEY="${{ secrets.APP_KEY }}" \
+          -e APP_URL="${{ vars.APP_URL }}" \
+          -e APP_PORT=80 \
+          -e DB_CONNECTION="${{ vars.DB_CONNECTION || 'sqlite' }}" \
+          -e DB_DATABASE="${{ vars.DB_DATABASE || '/var/www/html/database/database.sqlite' }}" \
+          -e LOG_CHANNEL="${{ vars.LOG_CHANNEL || 'stack' }}" \
+          -e LOG_LEVEL="${{ vars.LOG_LEVEL || 'error' }}" \
+          -e SESSION_DRIVER="${{ vars.SESSION_DRIVER || 'file' }}" \
+          -e CACHE_STORE="${{ vars.CACHE_STORE || 'file' }}" \
+          -e QUEUE_CONNECTION="${{ vars.QUEUE_CONNECTION || 'sync' }}" \
+          -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          -e GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}" \
+          -e TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}" \
+          -e VITE_TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}" \
+          -e TELEGRAPH_BOT_NAME="${{ vars.TELEGRAM_BOT_USERNAME }}" \
+          -e TELEGRAPH_TOKEN="${{ secrets.TELEGRAM_TOKEN }}" \
+          -e TELEGRAPH_WEBHOOK_URL="${{ vars.TELEGRAPH_WEBHOOK_URL }}" \
+          -e MAIL_MAILER="${{ vars.MAIL_MAILER || 'log' }}" \
+          $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
-      - name: 8. Pull Latest Image
+      - name: 5. Run Database Migrations
         run: |
-          cd /projects/ai-support-bot
-          docker pull ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
-
-      - name: 9. Deploy with Docker Compose
-        run: |
-          cd /projects/ai-support-bot
-
-          # Stop and remove old containers
-          docker compose down
-
-          # Ensure permissions are correct before starting containers
-          sudo chown -R github:github data
-          chmod -R 777 data
-
-          # Start services with new image
-          docker compose up -d
-
-          # Wait for services to be healthy
-          sleep 10
-
-          # Fix permissions after container creates any new files
-          sudo chown -R github:github data
-          chmod -R 777 data
-
-      - name: 10. Run Database Migrations
-        run: |
-          cd /projects/ai-support-bot
-
-          # Wait for container to be fully ready
+          # Wait for container to be ready
           sleep 5
-          
-          # Run migrations to create database and tables
-          docker compose exec -T ai-support-bot php /var/www/html/artisan migrate --force
 
-      - name: 11. Verify Deployment
+          # Run migrations
+          docker exec ai-support-bot php artisan migrate --force
+
+      - name: 6. Verify Deployment
         run: |
-          cd /projects/ai-support-bot
-
           echo "=== Container Status ==="
-          docker compose ps
+          docker ps --filter "name=ai-support-bot"
 
           echo ""
-          echo "=== Redis Health ==="
-          docker compose exec -T redis redis-cli ping || echo "Redis not responding"
+          echo "=== Application Health ==="
+          docker exec ai-support-bot php artisan --version || echo "Laravel not responding"
 
           echo ""
-          echo "=== Application Logs (last 10 lines) ==="
-          docker compose logs --tail=10 ai-support-bot
-
-          echo ""
-          echo "✅ Successfully deployed tag ${{ env.IMAGE_TAG }} to /projects/ai-support-bot"
+          echo "✅ Successfully deployed tag ${{ env.IMAGE_TAG }} on Raspberry Pi"
