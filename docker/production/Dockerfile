@@ -90,7 +90,7 @@ RUN npm config set fetch-retry-mintimeout 20000 \
 # Note: Vite variables are baked into the build, but for bot username we can use a placeholder
 # The actual bot interaction happens server-side via TELEGRAPH_BOT_NAME
 RUN for i in 1 2 3; do \
-        npm ci --omit=dev && break || \
+        npm ci --production=false && break || \
         (echo "npm ci failed, attempt $i/3" && sleep 10); \
     done \
     && VITE_TELEGRAM_BOT_USERNAME="$VITE_TELEGRAM_BOT_USERNAME" VITE_APP_NAME="$VITE_APP_NAME" npm run build \
