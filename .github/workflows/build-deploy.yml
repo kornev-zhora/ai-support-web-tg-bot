@@ -40,6 +40,9 @@ jobs:
           platforms: linux/arm/v7,linux/arm64 # Support both Raspberry Pi 2 (ARMv7) and newer models (ARM64)
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache,mode=max
+          build-args: |
+            VITE_TELEGRAM_BOT_USERNAME=${{ vars.VITE_TELEGRAM_BOT_USERNAME }}
+            VITE_APP_NAME=${{ vars.VITE_APP_NAME || 'AI Support Bot' }}
 
       - name: Dispatch Deployment Job to Pi Runner
         # Після успішної збірки, ми "повідомляємо" Raspberry Pi Runner
