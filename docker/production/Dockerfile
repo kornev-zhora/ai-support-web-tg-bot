@@ -5,6 +5,8 @@ LABEL description="Production-optimized ARM64 image for Raspberry Pi"
 
 ARG WWWGROUP=1000
 ARG NODE_VERSION=22
+ARG VITE_TELEGRAM_BOT_USERNAME=placeholder
+ARG VITE_APP_NAME="AI Support Bot"
 
 WORKDIR /var/www/html
 
@@ -87,11 +89,8 @@ RUN npm config set fetch-retry-mintimeout 20000 \
 # Install NPM dependencies and build assets with retry logic
 # Note: Vite variables are baked into the build, but for bot username we can use a placeholder
 # The actual bot interaction happens server-side via TELEGRAPH_BOT_NAME
-RUN for i in 1 2 3; do \
-        npm ci --omit=dev && break || \
-        (echo "npm ci failed, attempt $i/3" && sleep 10); \
-    done \
-    && VITE_TELEGRAM_BOT_USERNAME="placeholder" VITE_APP_NAME="AI Support Bot" npm run build \
+RUN npm ci --production=false \
+    && VITE_TELEGRAM_BOT_USERNAME="$VITE_TELEGRAM_BOT_USERNAME" VITE_APP_NAME="$VITE_APP_NAME" npm run build \
     && rm -rf node_modules \
     && npm cache clean --force
 
