@@ -78,10 +78,19 @@ COPY --chown=sail:sail . /var/www/html
 # Install Composer dependencies (production only)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Install NPM dependencies and build assets
+# Configure npm for better reliability
+RUN npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set fetch-retries 5 \
+    && npm config set fetch-timeout 300000
+
+# Install NPM dependencies and build assets with retry logic
 # Note: Vite variables are baked into the build, but for bot username we can use a placeholder
 # The actual bot interaction happens server-side via TELEGRAPH_BOT_NAME
-RUN npm ci --production=false \
+RUN for i in 1 2 3; do \
+        npm ci --omit=dev && break || \
+        (echo "npm ci failed, attempt $i/3" && sleep 10); \
+    done \
     && VITE_TELEGRAM_BOT_USERNAME="placeholder" VITE_APP_NAME="AI Support Bot" npm run build \
     && rm -rf node_modules \
     && npm cache clean --force
