@@ -95,8 +95,21 @@ jobs:
           cp compose.override.raspberry.yml compose.override.yml
           echo "✓ Compose override file copied"
 
+          # Validate compose configuration first
+          echo "Validating Docker Compose configuration..."
+          docker compose config > /dev/null || {
+            echo "❌ Docker Compose configuration is invalid"
+            exit 1
+          }
+          echo "✓ Compose configuration is valid"
+
           # Start services with docker compose
-          docker compose up -d --remove-orphans
+          echo "Starting Docker Compose services..."
+          docker compose up -d --remove-orphans || {
+            echo "❌ Failed to start Docker Compose services"
+            docker compose logs --tail=50
+            exit 1
+          }
           echo "✓ Docker Compose deployment completed"
 
       - name: 6. Run Database Migrations
