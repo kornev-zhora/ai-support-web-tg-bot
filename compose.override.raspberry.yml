@@ -1,69 +1,74 @@
 # Raspberry Pi Docker Compose Override
 # This file will be copied to compose.override.yml on Raspberry Pi during deployment
 # It overrides the development settings in compose.yaml with Raspberry Pi production configuration
+# Note: pgsql and redis services from base compose.yaml will be excluded via 'docker compose up ai-support-bot'
 
 services:
   ai-support-bot:
     # Use pre-built production image instead of building locally
     image: ${DOCKER_IMAGE:-sergeyphpdevua/ai-support-bot:latest}
-    build: null  # Disable build, use image from Docker Hub
-    networks: null  # Disable networks when using network_mode: host
+
+    # Disable build completely
+    build:
 
     # Production ports (only HTTP, no Vite dev server)
     ports:
       - '${APP_PORT:-80}:80'
 
+    # Remove dependencies - using external services
+    depends_on: {}
+
+    # Allow container to access host services (PostgreSQL and Redis)
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
     # Production volumes - use named volumes for data persistence
-    # Named volumes preserve container data without wiping out application files
     volumes:
       - storage-data:/var/www/html/storage
 
     # Production environment variables
     environment:
-      - APP_NAME=${APP_NAME:-AI Support Bot}
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_KEY=${APP_KEY}
-      - APP_URL=${APP_URL}
-      - APP_PORT=80
+      APP_NAME: ${APP_NAME:-AI Support Bot}
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL}
+      APP_PORT: 80
 
-      # Database - PostgreSQL (External)
-      - DB_CONNECTION=${DB_CONNECTION:-pgsql}
-      - DB_HOST=${DB_HOST:-localhost}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_DATABASE=${DB_DATABASE:-ai-bot}
-      - DB_USERNAME=${DB_USERNAME:-github}
-      - DB_PASSWORD=${DB_PASSWORD}
+      # Database - PostgreSQL (External - connect via host.docker.internal)
+      DB_CONNECTION: ${DB_CONNECTION:-pgsql}
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-ai-bot}
+      DB_USERNAME: ${DB_USERNAME:-github}
+      DB_PASSWORD: ${DB_PASSWORD}
 
-      # Redis connection (External)
-      - REDIS_CLIENT=phpredis
-      - REDIS_HOST=${REDIS_HOST:-localhost}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT:-6379}
+      # Redis connection (External - connect via host.docker.internal)
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: ${REDIS_HOST:-host.docker.internal}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      REDIS_PORT: ${REDIS_PORT:-6379}
 
-      # Cache & Session - use Redis
-      - CACHE_STORE=redis
-      - SESSION_DRIVER=redis
-      - QUEUE_CONNECTION=redis
+      # Cache & Session
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
 
       # Logging
-      - LOG_CHANNEL=stack
-      - LOG_LEVEL=${LOG_LEVEL:-error}
+      LOG_CHANNEL: stack
+      LOG_LEVEL: ${LOG_LEVEL:-error}
 
       # AI & Telegram
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - VITE_TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
-      - TELEGRAPH_BOT_NAME=${TELEGRAM_BOT_USERNAME}
-      - TELEGRAPH_TOKEN=${TELEGRAM_TOKEN}
-      - TELEGRAPH_WEBHOOK_URL=${TELEGRAPH_WEBHOOK_URL}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      VITE_TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+      TELEGRAPH_BOT_NAME: ${TELEGRAM_BOT_USERNAME}
+      TELEGRAPH_TOKEN: ${TELEGRAM_TOKEN}
+      TELEGRAPH_WEBHOOK_URL: ${TELEGRAPH_WEBHOOK_URL}
 
       # Mail
-      - MAIL_MAILER=${MAIL_MAILER:-log}
-
-    # No container dependencies - using external services
-    network_mode: host
+      MAIL_MAILER: ${MAIL_MAILER:-log}
 
     restart: unless-stopped
 
@@ -73,8 +78,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-# PostgreSQL and Redis are external services
 
 # Named volumes for data persistence
 volumes:
