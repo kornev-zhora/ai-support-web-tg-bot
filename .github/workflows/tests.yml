@@ -103,10 +103,8 @@ jobs:
         run: ./vendor/bin/pest --coverage --coverage-clover build/logs/clover.xml --stop-on-failure
 
       - name: Upload Coverage to Coveralls
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-          COVERALLS_SERVICE_NAME: github-actions
-        run: |
-          export CI_BRANCH=${{ github.ref_name }}
-          export CI_PULL_REQUEST=${{ github.event.number }}
-          ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/logs/clover.xml
+          format: clover
