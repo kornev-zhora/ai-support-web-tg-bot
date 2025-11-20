@@ -103,6 +103,7 @@ jobs:
         run: ./vendor/bin/pest --coverage --coverage-clover build/logs/clover.xml --stop-on-failure
 
       - name: Upload Coverage to Coveralls
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
