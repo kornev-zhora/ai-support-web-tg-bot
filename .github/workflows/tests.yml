@@ -49,7 +49,7 @@ jobs:
           php-version: 8.4
           extensions: pgsql, pdo_pgsql, redis
           tools: composer:v2
-          coverage: none
+          coverage: xdebug
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -93,8 +93,18 @@ jobs:
           DB_HOST: 127.0.0.1
         run: php artisan migrate --force
 
-      - name: Run Tests
+      - name: Create Coverage Directory
+        run: mkdir -p build/logs
+
+      - name: Run Tests with Coverage
         env:
           DB_HOST: 127.0.0.1
           REDIS_HOST: 127.0.0.1
-        run: ./vendor/bin/pest --stop-on-failure
+        run: ./vendor/bin/pest --coverage --coverage-clover build/logs/clover.xml --stop-on-failure
+
+      - name: Upload Coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/logs/clover.xml
+          format: clover
