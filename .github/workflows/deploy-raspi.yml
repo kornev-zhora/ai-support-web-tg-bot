@@ -73,6 +73,7 @@ jobs:
             echo "GEMINI_MODEL=\"${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}\""
             echo "TELEGRAM_TOKEN=\"${{ secrets.TELEGRAM_TOKEN }}\""
             echo "TELEGRAM_BOT_USERNAME=\"${{ vars.TELEGRAM_BOT_USERNAME }}\""
+            echo "TELEGRAPH_WEBHOOK_URL=\"${{ vars.TELEGRAPH_WEBHOOK_URL || '' }}\""
             echo ""
             echo "DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}"
           } > .env 2>&1

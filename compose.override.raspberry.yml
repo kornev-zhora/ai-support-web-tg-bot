@@ -7,6 +7,7 @@ services:
     # Use pre-built production image instead of building locally
     image: ${DOCKER_IMAGE:-sergeyphpdevua/ai-support-bot:latest}
     build: null  # Disable build, use image from Docker Hub
+    networks: null  # Disable networks when using network_mode: host
 
     # Production ports (only HTTP, no Vite dev server)
     ports:
