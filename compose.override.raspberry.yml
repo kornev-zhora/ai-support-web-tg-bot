@@ -8,6 +8,9 @@ services:
     # Use pre-built production image instead of building locally
     image: ${DOCKER_IMAGE:-sergeyphpdevua/ai-support-bot:latest}
 
+    # Set explicit container name for easier management
+    container_name: ai-support-bot
+
     # Disable build completely
     build:
 
@@ -15,7 +18,7 @@ services:
     ports:
       - '${APP_PORT:-80}:80'
 
-    # Remove dependencies - using external services
+    # Remove dependencies - using external services (will be ignored with --no-deps flag)
     depends_on: {}
 
     # Allow container to access host services (PostgreSQL and Redis)

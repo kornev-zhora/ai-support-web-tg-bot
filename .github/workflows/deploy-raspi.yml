@@ -103,9 +103,10 @@ jobs:
           }
           echo "✓ Compose configuration is valid"
 
-          # Start services with docker compose (only ai-support-bot, not pgsql/redis)
+          # Start services with docker compose (only ai-support-bot, skip dependencies)
+          # --no-deps prevents starting pgsql and redis services
           echo "Starting Docker Compose services..."
-          docker compose up -d ai-support-bot --remove-orphans || {
+          docker compose up -d --no-deps ai-support-bot --remove-orphans || {
             echo "❌ Failed to start Docker Compose services"
             docker compose logs ai-support-bot --tail=50
             exit 1
