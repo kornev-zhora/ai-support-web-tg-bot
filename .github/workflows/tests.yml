@@ -105,4 +105,8 @@ jobs:
       - name: Upload Coverage to Coveralls
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        run: ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+          COVERALLS_SERVICE_NAME: github-actions
+        run: |
+          export CI_BRANCH=${{ github.ref_name }}
+          export CI_PULL_REQUEST=${{ github.event.number }}
+          ./vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
