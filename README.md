@@ -9,7 +9,7 @@
 
 [![Tests](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml)
 [![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen?style=flat&logo=github)](https://github.com/BorschCode/ai-support-web-tg-bot/actions)
+[![Coverage Status](https://coveralls.io/repos/github/BorschCode/ai-support-web-tg-bot/badge.svg?branch=main)](https://coveralls.io/github/BorschCode/ai-support-web-tg-bot?branch=main)
 
 An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Google Gemini API. This application provides seamless integration with Telegram to deliver automated customer support with cutting-edge AI capabilities.
 
@@ -46,24 +46,29 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 ## 📸 Screenshots
 
 ### Index
+
 ![Dashboard](docs/images/index.png)
-*Main dashboard showing bot statistics and recent conversations*
+_Main dashboard showing bot statistics and recent conversations_
 
 ### Web Bot Interface
+
 ![Web Bot](docs/images/chat.png)
 
 ### Privacy
+
 ![Privacy Policy](docs/images/Privacy%20Policy%20-%20AI%20Support%20Bot.png)
 
 ### Telegram Bot Interface
+
 ![Telegram Bot](docs/images/tg-chat.png)
-*Chat with the bot on Telegram: [@saslkdjxn_bot](https://t.me/saslkdjxn_bot)*
+_Chat with the bot on Telegram: [@saslkdjxn_bot](https://t.me/saslkdjxn_bot)_
 
 > **Note**: Add your screenshots to the `docs/images/` directory
 
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Laravel 12** - PHP framework for web artisans
 - **PHP 8.4** - Latest PHP version with performance improvements
 - **PostgreSQL 17** - Advanced open-source relational database
@@ -72,6 +77,7 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 - **Laravel Sail** - Docker development environment
 
 ### Frontend
+
 - **Vue.js 3** - Progressive JavaScript framework
 - **Inertia.js v2** - Modern monolith architecture
 - **Tailwind CSS v4** - Utility-first CSS framework
@@ -79,10 +85,12 @@ An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Googl
 - **TypeScript** - Type-safe JavaScript
 
 ### AI & Integration
+
 - **Google Gemini AI** - Advanced language model for AI responses
 - **Telegram Bot API** - Bot platform integration
 
 ### DevOps
+
 - **Docker & Docker Compose** - Containerization
 - **Pest v4** - Elegant PHP testing framework
 - **Laravel Pint** - Opinionated PHP code style fixer
@@ -170,6 +178,7 @@ VITE_TELEGRAM_BOT_USERNAME="your_bot_username"
 ```
 
 This creates a test user:
+
 - **Email**: `test@example.com`
 - **Password**: `password`
 
@@ -186,6 +195,7 @@ This creates a test user:
 ### 9. Access the Application
 
 Open your browser and navigate to:
+
 ```
 http://localhost:8060
 ```
@@ -194,32 +204,33 @@ http://localhost:8060
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `APP_NAME` | Application name | AI Support Bot |
-| `APP_PORT` | Port for the web application | 8060 |
-| `APP_URL` | Application URL | http://localhost:8060 |
-| `WWWUSER` | Docker user ID for file permissions | 1000 |
-| `WWWGROUP` | Docker group ID for file permissions | 1000 |
-| `DB_CONNECTION` | Database driver | pgsql |
-| `DB_HOST` | Database host (Docker service name) | pgsql |
-| `DB_PORT` | Database port | 5432 |
-| `DB_DATABASE` | Database name | laravel |
-| `DB_USERNAME` | Database username | sail |
-| `DB_PASSWORD` | Database password | password |
-| `REDIS_HOST` | Redis host (Docker service name) | redis |
-| `REDIS_PORT` | Redis port | 6379 |
-| `REDIS_PASSWORD` | Redis password (optional) | null |
-| `GEMINI_API_KEY` | Google Gemini API key | - |
-| `GEMINI_MODEL` | Gemini model to use | gemini-2.5-flash |
-| `TELEGRAM_TOKEN` | Telegram bot token from @BotFather | - |
-| `VITE_TELEGRAM_BOT_USERNAME` | Bot username (without @) | - |
+| Variable                     | Description                          | Default               |
+| ---------------------------- | ------------------------------------ | --------------------- |
+| `APP_NAME`                   | Application name                     | AI Support Bot        |
+| `APP_PORT`                   | Port for the web application         | 8060                  |
+| `APP_URL`                    | Application URL                      | http://localhost:8060 |
+| `WWWUSER`                    | Docker user ID for file permissions  | 1000                  |
+| `WWWGROUP`                   | Docker group ID for file permissions | 1000                  |
+| `DB_CONNECTION`              | Database driver                      | pgsql                 |
+| `DB_HOST`                    | Database host (Docker service name)  | pgsql                 |
+| `DB_PORT`                    | Database port                        | 5432                  |
+| `DB_DATABASE`                | Database name                        | laravel               |
+| `DB_USERNAME`                | Database username                    | sail                  |
+| `DB_PASSWORD`                | Database password                    | password              |
+| `REDIS_HOST`                 | Redis host (Docker service name)     | redis                 |
+| `REDIS_PORT`                 | Redis port                           | 6379                  |
+| `REDIS_PASSWORD`             | Redis password (optional)            | null                  |
+| `GEMINI_API_KEY`             | Google Gemini API key                | -                     |
+| `GEMINI_MODEL`               | Gemini model to use                  | gemini-2.5-flash      |
+| `TELEGRAM_TOKEN`             | Telegram bot token from @BotFather   | -                     |
+| `VITE_TELEGRAM_BOT_USERNAME` | Bot username (without @)             | -                     |
 
 > **Note**: Chat messages are stored in Redis with a 24-hour TTL (Time To Live). After 24 hours, messages are automatically deleted to optimize storage and performance. Conversation metadata and statistics are permanently stored in PostgreSQL.
 
 ### Getting API Keys
 
 #### Google Gemini API Key
+
 1. Visit [Google AI Studio](https://ai.google.dev)
 2. Sign in with your Google account
 3. Click "Get API Key"
@@ -227,6 +238,7 @@ http://localhost:8060
 5. Copy the key to your `.env` file
 
 #### Telegram Bot Token
+
 1. Open Telegram and search for [@BotFather](https://t.me/BotFather)
 2. Send `/newbot` command
 3. Follow the prompts to create your bot
@@ -239,13 +251,14 @@ The application supports multiple Gemini AI models. Choose the model based on yo
 
 #### Available Models
 
-| Model | Best For | Context Window |
-|-------|----------|----------------|
-| `gemini-2.5-flash` | **Recommended** - Fast responses, cost-effective, high volume | 1M tokens |
-| `gemini-2.5-pro` | Advanced reasoning, complex tasks, highest quality | 2M tokens |
-| `gemini-2.0-flash` | Legacy support, higher free tier limits | 1M tokens |
+| Model              | Best For                                                      | Context Window |
+| ------------------ | ------------------------------------------------------------- | -------------- |
+| `gemini-2.5-flash` | **Recommended** - Fast responses, cost-effective, high volume | 1M tokens      |
+| `gemini-2.5-pro`   | Advanced reasoning, complex tasks, highest quality            | 2M tokens      |
+| `gemini-2.0-flash` | Legacy support, higher free tier limits                       | 1M tokens      |
 
 Configure in `.env`:
+
 ```env
 GEMINI_MODEL="gemini-2.5-flash"
 ```
@@ -287,15 +300,18 @@ Your rate limits depend on your Google Cloud billing tier:
 #### Choosing Your Model
 
 **For Development/Testing:**
+
 - Use `gemini-2.0-flash` on free tier (15 RPM)
 - Switch to `gemini-2.5-flash` when you enable billing
 
 **For Production:**
+
 - **High volume, speed-critical**: `gemini-2.5-flash` (Tier 1: 1,000 RPM)
 - **Quality-critical, complex reasoning**: `gemini-2.5-pro`
 - **Budget-conscious with high limits**: `gemini-2.0-flash`
 
 **Rate Limit Management:**
+
 - Monitor your usage in [Google AI Studio](https://ai.google.dev)
 - Implement request queuing for high-traffic scenarios
 - Switch models as your tier increases
@@ -313,12 +329,14 @@ id -g  # Shows your group ID
 ```
 
 Update `.env`:
+
 ```env
 WWWUSER=<your-user-id>
 WWWGROUP=<your-group-id>
 ```
 
 Then restart the containers:
+
 ```bash
 ./vendor/bin/sail down
 ./vendor/bin/sail up -d
@@ -334,6 +352,7 @@ Then restart the containers:
 ### Default Test User
 
 After seeding the database, log in with:
+
 - **Email**: `test@example.com`
 - **Password**: `password`
 - **Name**: Test User
@@ -471,17 +490,20 @@ Then access the application at http://localhost:8060
 ### Production Build
 
 1. Set environment to production:
+
 ```env
 APP_ENV=production
 APP_DEBUG=false
 ```
 
 2. Build optimized assets:
+
 ```bash
 ./vendor/bin/sail npm run build
 ```
 
 3. Optimize Laravel:
+
 ```bash
 ./vendor/bin/sail artisan config:cache
 ./vendor/bin/sail artisan route:cache
@@ -491,6 +513,7 @@ APP_DEBUG=false
 ### Docker Production
 
 For production deployment, consider:
+
 - Using environment-specific `.env` files
 - Configuring proper database backups
 - Setting up SSL/TLS certificates
@@ -509,6 +532,7 @@ APP_PORT=8080
 ```
 
 Then restart:
+
 ```bash
 ./vendor/bin/sail down && ./vendor/bin/sail up -d
 ```
@@ -522,6 +546,7 @@ If you see "Unable to locate file in Vite manifest":
 ```
 
 Or run dev server:
+
 ```bash
 ./vendor/bin/sail npm run dev
 ```
@@ -535,6 +560,7 @@ Ensure PostgreSQL container is running:
 ```
 
 If not running:
+
 ```bash
 ./vendor/bin/sail up -d
 ```
@@ -563,25 +589,26 @@ If your GitHub Actions tests are failing:
 1. **Check the workflow logs** on GitHub for specific error messages
 
 2. **Verify PostgreSQL configuration:**
-   - Ensure `.github/workflows/tests.yml` has the PostgreSQL service configured
-   - Check that `phpunit.xml` has the correct database settings
+    - Ensure `.github/workflows/tests.yml` has the PostgreSQL service configured
+    - Check that `phpunit.xml` has the correct database settings
 
 3. **Run tests locally first:**
+
 ```bash
 ./vendor/bin/sail artisan test
 ```
 
 4. **Common issues:**
-   - **Database connection errors**: Verify PostgreSQL service is configured in workflow
-   - **Missing environment variables**: Check that GEMINI_API_KEY and TELEGRAM_TOKEN are set
-   - **Asset build failures**: Ensure `npm run build` completes successfully locally
-   - **PHPStan errors**: Run `./vendor/bin/sail composer phpstan` locally to fix type issues
-   - **Code style issues**: Run `./vendor/bin/sail pint` to fix formatting
+    - **Database connection errors**: Verify PostgreSQL service is configured in workflow
+    - **Missing environment variables**: Check that GEMINI_API_KEY and TELEGRAM_TOKEN are set
+    - **Asset build failures**: Ensure `npm run build` completes successfully locally
+    - **PHPStan errors**: Run `./vendor/bin/sail composer phpstan` locally to fix type issues
+    - **Code style issues**: Run `./vendor/bin/sail pint` to fix formatting
 
 5. **Debug workflow:**
-   - Add `run: php artisan about` step to check Laravel configuration
-   - Add `run: php -v` and `php -m` to verify PHP and extensions
-   - Check PostgreSQL connection with `pg_isready` command
+    - Add `run: php artisan about` step to check Laravel configuration
+    - Add `run: php -v` and `php -m` to verify PHP and extensions
+    - Check PostgreSQL connection with `pg_isready` command
 
 ## 🤝 Contributing
 
