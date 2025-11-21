@@ -21,11 +21,12 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
 
       - name: 2. Clean Workspace
-        # Fix permissions on storage directories before checkout to prevent EACCES errors
+        # Fix permissions on leftover files from previous runs
+        # Previous runs may have created storage files that the runner can't delete
+        # Use Docker to remove them since Docker runs with appropriate permissions
         run: |
           if [ -d "$GITHUB_WORKSPACE/storage" ]; then
-            chmod -R u+w "$GITHUB_WORKSPACE/storage" || true
-            rm -rf "$GITHUB_WORKSPACE/storage" || true
+            docker run --rm -v "$GITHUB_WORKSPACE:/workspace" alpine sh -c "rm -rf /workspace/storage /workspace/bootstrap/cache/*" || true
           fi
 
       - name: 3. Checkout Repository
