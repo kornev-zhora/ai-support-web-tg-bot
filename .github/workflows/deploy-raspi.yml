@@ -20,32 +20,40 @@ jobs:
           # Це дозволяє парсити JSON, що передається
           DEBIAN_FRONTEND: noninteractive
 
-      - name: 2. Checkout Repository
+      - name: 2. Clean Workspace
+        # Fix permissions on storage directories before checkout to prevent EACCES errors
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/storage" ]; then
+            chmod -R u+w "$GITHUB_WORKSPACE/storage" || true
+            rm -rf "$GITHUB_WORKSPACE/storage" || true
+          fi
+
+      - name: 3. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 3. Login to Docker Hub
+      - name: 4. Login to Docker Hub
         # Потрібен для отримання приватного образу
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 4. Pull and Stop Old Container
+      - name: 5. Pull and Stop Old Container
         # Отримання нового образу та зупинка старого контейнера
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-          # 3.1. Отримання нового образу
+          # 5.1. Отримання нового образу
           docker pull $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
-          # 3.2. Зупинка старого контейнера (якщо існує)
+          # 5.2. Зупинка старого контейнера (якщо існує)
           CONTAINER_ID=$(docker ps -aq --filter "name=ai-support-bot")
           if [ ! -z "$CONTAINER_ID" ]; then
             docker stop $CONTAINER_ID
             docker rm $CONTAINER_ID
           fi
 
-          # 3.3. Видалення старих образів
+          # 5.3. Видалення старих образів
           docker image prune -f
 
-      - name: 5. Deploy with Docker Compose
+      - name: 6. Deploy with Docker Compose
         run: |
           # Create environment file (output hidden for security)
           {
@@ -102,7 +110,7 @@ jobs:
           docker exec ai-support-bot chown -R sail:sail /var/www/html/storage
           docker exec ai-support-bot chmod -R 775 /var/www/html/storage
 
-      - name: 6. Run Database Migrations and Cache
+      - name: 7. Run Database Migrations and Cache
         run: |
           # Clear and optimize caches
           docker exec ai-support-bot php artisan config:clear || true
@@ -118,7 +126,7 @@ jobs:
           docker exec ai-support-bot php artisan route:cache
           docker exec ai-support-bot php artisan view:cache
 
-      - name: 7. Verify Deployment
+      - name: 8. Verify Deployment
         run: |
           echo "=== Container Status ==="
           docker ps --filter "name=ai-support-bot"
