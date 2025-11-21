@@ -24,13 +24,13 @@ jobs:
         # Create a minimal deployment directory with only the necessary compose files
         # We don't checkout the full repository because the production image already contains the application code
         run: |
-          mkdir -p ~/ai-support-bot-deploy
-          cd ~/ai-support-bot-deploy
+          mkdir -p /projects/ai-support-bot-deploy
+          cd /projects/ai-support-bot-deploy
 
       - name: 3. Download Compose Files
         # Download only the compose files needed for deployment
         run: |
-          cd ~/ai-support-bot-deploy
+          cd /projects/ai-support-bot-deploy
           curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.yaml -o compose.yaml
           curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.override.raspberry.yml -o compose.override.raspberry.yml
 
@@ -58,7 +58,7 @@ jobs:
 
       - name: 6. Deploy with Docker Compose
         run: |
-          cd ~/ai-support-bot-deploy
+          cd /projects/ai-support-bot-deploy
 
           # Create environment file (output hidden for security)
           {
