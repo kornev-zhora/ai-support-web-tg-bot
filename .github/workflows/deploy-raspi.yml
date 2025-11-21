@@ -73,13 +73,18 @@ jobs:
           GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}"
           TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}"
           TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
+          TELEGRAPH_WEBHOOK_URL="${{ vars.TELEGRAPH_WEBHOOK_URL }}"
 
           DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
           EOF
 
           # Copy override file and start services
           cp compose.override.raspberry.yml compose.override.yml
-          docker compose up -d
+
+          # Start only ai-support-bot service without dependencies (pgsql, redis are external)
+          # --no-deps prevents trying to start pgsql and redis from base compose.yaml
+          # --remove-orphans cleans up any old services
+          docker compose up -d --no-deps ai-support-bot --remove-orphans
 
           # Wait for container to be fully up
           echo "Waiting for container to start..."
