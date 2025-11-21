@@ -1,6 +1,9 @@
-# Raspberry Pi Docker Compose Override
-# This file will be copied to compose.override.yml on Raspberry Pi during deployment
-# It overrides the development settings in compose.yaml with Raspberry Pi production configuration
+# Raspberry Pi Docker Compose Production Configuration
+# This file completely replaces compose.yaml for production deployment on Raspberry Pi
+# It does NOT merge with compose.yaml - it's a standalone production configuration
+#
+# Usage: Copy this to compose.override.yml and run docker compose up -d
+# The override will take precedence and provide a complete service definition
 
 services:
   ai-support-bot:
@@ -67,7 +70,11 @@ services:
       - MAIL_MAILER=${MAIL_MAILER:-log}
 
     # No container dependencies - using external services
-    depends_on: {}
+    depends_on: !reset {}
+
+    # Use host network to connect to external PostgreSQL and Redis
+    # !reset removes the networks array from base compose.yaml to avoid conflict with network_mode
+    networks: !reset []
     network_mode: host
 
     restart: unless-stopped

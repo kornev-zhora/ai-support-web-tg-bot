@@ -79,7 +79,11 @@ jobs:
 
           # Copy override file and start services
           cp compose.override.raspberry.yml compose.override.yml
-          docker compose up -d
+
+          # Start only ai-support-bot service without dependencies (pgsql, redis are external)
+          # --no-deps prevents trying to start pgsql and redis from base compose.yaml
+          # --remove-orphans cleans up any old services
+          docker compose up -d --no-deps ai-support-bot --remove-orphans
 
           # Wait for container to be fully up
           echo "Waiting for container to start..."
