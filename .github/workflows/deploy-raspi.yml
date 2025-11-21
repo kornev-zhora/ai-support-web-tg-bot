@@ -22,11 +22,13 @@ jobs:
 
       - name: 2. Clean Workspace
         # Fix permissions on leftover files from previous runs
-        # Previous runs may have created storage files that the runner can't delete
-        # Use Docker to remove them since Docker runs with appropriate permissions
+        # The runner can't delete files owned by other users (like sail:sail from containers)
+        # Use Docker to clean the entire workspace since Docker runs as root
         run: |
-          if [ -d "$GITHUB_WORKSPACE/storage" ]; then
-            docker run --rm -v "$GITHUB_WORKSPACE:/workspace" alpine sh -c "rm -rf /workspace/storage /workspace/bootstrap/cache/*" || true
+          if [ -d "$GITHUB_WORKSPACE" ]; then
+            # Use alpine container to clean everything except .git directory
+            # Docker runs as root and can delete files owned by any user
+            docker run --rm -v "$GITHUB_WORKSPACE:/workspace" alpine sh -c "cd /workspace && find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +" || true
           fi
 
       - name: 3. Checkout Repository
