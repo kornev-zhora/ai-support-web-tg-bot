@@ -20,121 +20,99 @@ jobs:
           # Це дозволяє парсити JSON, що передається
           DEBIAN_FRONTEND: noninteractive
 
-      - name: 2. Create Deployment Directory
-        # Create a minimal deployment directory with only the necessary compose files
-        # We don't checkout the full repository because the production image already contains the application code
-        run: |
-          mkdir -p /projects/ai-support-bot-deploy
-          cd /projects/ai-support-bot-deploy
+      - name: 2. Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: 3. Download Compose Files
-        # Download only the compose files needed for deployment
-        run: |
-          cd /projects/ai-support-bot-deploy
-          curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.yaml -o compose.yaml
-          curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.override.raspberry.yml -o compose.override.raspberry.yml
-
-      - name: 4. Login to Docker Hub
+      - name: 3. Login to Docker Hub
         # Потрібен для отримання приватного образу
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 5. Pull and Stop Old Container
+      - name: 4. Pull and Stop Old Container
         # Отримання нового образу та зупинка старого контейнера
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-          # 5.1. Отримання нового образу
+          # 3.1. Отримання нового образу
           docker pull $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
-          # 5.2. Зупинка старого контейнера (якщо існує)
+          # 3.2. Зупинка старого контейнера (якщо існує)
           CONTAINER_ID=$(docker ps -aq --filter "name=ai-support-bot")
           if [ ! -z "$CONTAINER_ID" ]; then
             docker stop $CONTAINER_ID
             docker rm $CONTAINER_ID
           fi
 
-          # 5.3. Видалення старих образів
+          # 3.3. Видалення старих образів
           docker image prune -f
 
-      - name: 6. Deploy with Docker Compose
+      - name: 5. Deploy with Docker Compose
         run: |
-          cd /projects/ai-support-bot-deploy
+          # Create environment file
+          cat > .env << EOF
+          APP_NAME="${{ vars.APP_NAME || 'AI Support Bot' }}"
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_KEY="${{ secrets.APP_KEY }}"
+          APP_URL="${{ vars.APP_URL }}"
+          APP_PORT=${{ vars.APP_PORT || 8060 }}
+          WWWUSER=${{ vars.WWWUSER || 1000 }}
+          WWWGROUP=${{ vars.WWWGROUP || 1000 }}
 
-          # Create environment file (output hidden for security)
-          {
-            echo "APP_NAME=\"${{ vars.APP_NAME || 'AI Support Bot' }}\""
-            echo "APP_ENV=production"
-            echo "APP_DEBUG=false"
-            echo "APP_KEY=\"${{ secrets.APP_KEY }}\""
-            echo "APP_URL=\"${{ vars.APP_URL }}\""
-            echo "APP_PORT=${{ vars.APP_PORT || 8060 }}"
-            echo "WWWUSER=${{ vars.WWWUSER || 1000 }}"
-            echo "WWWGROUP=${{ vars.WWWGROUP || 1000 }}"
-            echo ""
-            echo "DB_CONNECTION=pgsql"
-            echo "DB_HOST=${{ vars.DB_HOST || 'localhost' }}"
-            echo "DB_PORT=${{ vars.DB_PORT || '5432' }}"
-            echo "DB_DATABASE=${{ vars.DB_DATABASE || 'ai-bot' }}"
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}"
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
-            echo ""
-            echo "REDIS_HOST=${{ vars.REDIS_HOST || 'localhost' }}"
-            echo "REDIS_PORT=${{ vars.REDIS_PORT || '6379' }}"
-            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
-            echo ""
-            echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\""
-            echo "GEMINI_MODEL=\"${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}\""
-            echo "TELEGRAM_TOKEN=\"${{ secrets.TELEGRAM_TOKEN }}\""
-            echo "TELEGRAM_BOT_USERNAME=\"${{ vars.TELEGRAM_BOT_USERNAME }}\""
-            echo "TELEGRAPH_WEBHOOK_URL=\"${{ vars.TELEGRAPH_WEBHOOK_URL || '' }}\""
-            echo ""
-            echo "DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}"
-          } > .env 2>&1
+          DB_CONNECTION=pgsql
+          DB_HOST=${{ vars.DB_HOST || 'localhost' }}
+          DB_PORT=${{ vars.DB_PORT || '5432' }}
+          DB_DATABASE=${{ vars.DB_DATABASE || 'ai-bot' }}
+          DB_USERNAME=${{ vars.DB_USERNAME || 'github' }}
+          DB_PASSWORD=${{ vars.DB_PASSWORD }}
 
-          echo "✓ Environment file created"
+          REDIS_HOST=${{ vars.REDIS_HOST || 'localhost' }}
+          REDIS_PORT=${{ vars.REDIS_PORT || '6379' }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
 
-          # Verify compose files exist
-          if [ ! -f compose.yaml ]; then
-            echo "Error: compose.yaml not found"
-            exit 1
-          fi
+          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
+          GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}"
+          TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}"
+          TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
 
-          if [ ! -f compose.override.raspberry.yml ]; then
-            echo "Error: compose.override.raspberry.yml not found"
-            exit 1
-          fi
+          DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
+          EOF
 
           # Copy override file and start services
           cp compose.override.raspberry.yml compose.override.yml
-          echo "✓ Compose override file copied"
+          docker compose up -d
 
-          # Validate compose configuration first
-          echo "Validating Docker Compose configuration..."
-          docker compose config > /dev/null || {
-            echo "❌ Docker Compose configuration is invalid"
-            exit 1
-          }
-          echo "✓ Compose configuration is valid"
+          # Wait for container to be fully up
+          echo "Waiting for container to start..."
+          for i in {1..30}; do
+            if docker exec ai-support-bot test -f /var/www/html/artisan; then
+              echo "Container is ready"
+              break
+            fi
+            echo "Attempt $i/30: Waiting..."
+            sleep 2
+          done
 
-          # Start services with docker compose (only ai-support-bot, skip dependencies)
-          # --no-deps prevents starting pgsql and redis services
-          echo "Starting Docker Compose services..."
-          docker compose up -d --no-deps ai-support-bot --remove-orphans || {
-            echo "❌ Failed to start Docker Compose services"
-            docker compose logs ai-support-bot --tail=50
-            exit 1
-          }
-          echo "✓ Docker Compose deployment completed"
+          # Ensure storage directories have correct permissions
+          docker exec ai-support-bot chown -R sail:sail /var/www/html/storage
+          docker exec ai-support-bot chmod -R 775 /var/www/html/storage
 
-      - name: 7. Run Database Migrations
+      - name: 6. Run Database Migrations and Cache
         run: |
-          # Wait for services to be ready
-          sleep 10
+          # Clear and optimize caches
+          docker exec ai-support-bot php artisan config:clear || true
+          docker exec ai-support-bot php artisan cache:clear || true
+          docker exec ai-support-bot php artisan route:clear || true
+          docker exec ai-support-bot php artisan view:clear || true
 
           # Run migrations
           docker exec ai-support-bot php artisan migrate --force
 
-      - name: 8. Verify Deployment
+          # Optimize for production
+          docker exec ai-support-bot php artisan config:cache
+          docker exec ai-support-bot php artisan route:cache
+          docker exec ai-support-bot php artisan view:cache
+
+      - name: 7. Verify Deployment
         run: |
           echo "=== Container Status ==="
           docker ps --filter "name=ai-support-bot"
