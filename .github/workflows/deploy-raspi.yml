@@ -47,36 +47,37 @@ jobs:
 
       - name: 5. Deploy with Docker Compose
         run: |
-          # Create environment file
-          cat > .env << EOF
-          APP_NAME="${{ vars.APP_NAME || 'AI Support Bot' }}"
-          APP_ENV=production
-          APP_DEBUG=false
-          APP_KEY="${{ secrets.APP_KEY }}"
-          APP_URL="${{ vars.APP_URL }}"
-          APP_PORT=${{ vars.APP_PORT || 8060 }}
-          WWWUSER=${{ vars.WWWUSER || 1000 }}
-          WWWGROUP=${{ vars.WWWGROUP || 1000 }}
-
-          DB_CONNECTION=pgsql
-          DB_HOST=${{ vars.DB_HOST || 'localhost' }}
-          DB_PORT=${{ vars.DB_PORT || '5432' }}
-          DB_DATABASE=${{ vars.DB_DATABASE || 'ai-bot' }}
-          DB_USERNAME=${{ vars.DB_USERNAME || 'github' }}
-          DB_PASSWORD=${{ vars.DB_PASSWORD }}
-
-          REDIS_HOST=${{ vars.REDIS_HOST || 'localhost' }}
-          REDIS_PORT=${{ vars.REDIS_PORT || '6379' }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-
-          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-          GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}"
-          TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}"
-          TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
-          TELEGRAPH_WEBHOOK_URL="${{ vars.TELEGRAPH_WEBHOOK_URL }}"
-
-          DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
-          EOF
+          # Create environment file (output hidden for security)
+          {
+            echo "APP_NAME=\"${{ vars.APP_NAME || 'AI Support Bot' }}\""
+            echo "APP_ENV=production"
+            echo "APP_DEBUG=false"
+            echo "APP_KEY=\"${{ secrets.APP_KEY }}\""
+            echo "APP_URL=\"${{ vars.APP_URL }}\""
+            echo "APP_PORT=${{ vars.APP_PORT || 8060 }}"
+            echo "WWWUSER=${{ vars.WWWUSER || 1000 }}"
+            echo "WWWGROUP=${{ vars.WWWGROUP || 1000 }}"
+            echo ""
+            echo "DB_CONNECTION=pgsql"
+            echo "DB_HOST=${{ vars.DB_HOST || 'localhost' }}"
+            echo "DB_PORT=${{ vars.DB_PORT || '5432' }}"
+            echo "DB_DATABASE=${{ vars.DB_DATABASE || 'ai-bot' }}"
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}"
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+            echo ""
+            echo "REDIS_HOST=${{ vars.REDIS_HOST || 'localhost' }}"
+            echo "REDIS_PORT=${{ vars.REDIS_PORT || '6379' }}"
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
+            echo ""
+            echo "GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\""
+            echo "GEMINI_MODEL=\"${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}\""
+            echo "TELEGRAM_TOKEN=\"${{ secrets.TELEGRAM_TOKEN }}\""
+            echo "TELEGRAM_BOT_USERNAME=\"${{ vars.TELEGRAM_BOT_USERNAME }}\""
+            echo "TELEGRAPH_WEBHOOK_URL=\"${{ vars.TELEGRAPH_WEBHOOK_URL || '' }}\""
+            echo ""
+            echo "DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}"
+          } > .env 2>&1
+          echo "✓ Environment file created"
 
           # Copy override file and start services
           cp compose.override.raspberry.yml compose.override.yml
