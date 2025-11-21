@@ -7,10 +7,6 @@ services:
   ai-support-bot:
     # Use pre-built production image instead of building locally
     image: ${DOCKER_IMAGE:-sergeyphpdevua/ai-support-bot:latest}
-
-    # Set explicit container name for easier management
-    container_name: ai-support-bot
-
     # Disable build completely
     build:
 
