@@ -25,7 +25,10 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 
-    # Production volumes - use named volumes for data persistence
+    # Production volumes - use named volume for storage persistence only
+    # IMPORTANT: The application code is baked into the Docker image during build.
+    # We do NOT mount the application code from the host filesystem like in development.
+    # Only the storage directory needs to persist between container restarts.
     volumes:
       - storage-data:/var/www/html/storage
 

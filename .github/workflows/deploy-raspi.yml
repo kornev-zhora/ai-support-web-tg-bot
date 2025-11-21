@@ -20,33 +20,46 @@ jobs:
           # Це дозволяє парсити JSON, що передається
           DEBIAN_FRONTEND: noninteractive
 
-      - name: 2. Checkout Repository
-        uses: actions/checkout@v4
+      - name: 2. Create Deployment Directory
+        # Create a minimal deployment directory with only the necessary compose files
+        # We don't checkout the full repository because the production image already contains the application code
+        run: |
+          mkdir -p /projects/ai-support-bot-deploy
+          cd /projects/ai-support-bot-deploy
 
-      - name: 3. Login to Docker Hub
+      - name: 3. Download Compose Files
+        # Download only the compose files needed for deployment
+        run: |
+          cd /projects/ai-support-bot-deploy
+          curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.yaml -o compose.yaml
+          curl -sL https://raw.githubusercontent.com/${{ github.repository }}/main/compose.override.raspberry.yml -o compose.override.raspberry.yml
+
+      - name: 4. Login to Docker Hub
         # Потрібен для отримання приватного образу
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 4. Pull and Stop Old Container
+      - name: 5. Pull and Stop Old Container
         # Отримання нового образу та зупинка старого контейнера
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/ai-support-bot
 
-          # 3.1. Отримання нового образу
+          # 5.1. Отримання нового образу
           docker pull $IMAGE_NAME:${{ env.IMAGE_TAG }}
 
-          # 3.2. Зупинка старого контейнера (якщо існує)
+          # 5.2. Зупинка старого контейнера (якщо існує)
           CONTAINER_ID=$(docker ps -aq --filter "name=ai-support-bot")
           if [ ! -z "$CONTAINER_ID" ]; then
             docker stop $CONTAINER_ID
             docker rm $CONTAINER_ID
           fi
 
-          # 3.3. Видалення старих образів
+          # 5.3. Видалення старих образів
           docker image prune -f
 
-      - name: 5. Deploy with Docker Compose
+      - name: 6. Deploy with Docker Compose
         run: |
+          cd /projects/ai-support-bot-deploy
+
           # Create environment file (output hidden for security)
           {
             echo "APP_NAME=\"${{ vars.APP_NAME || 'AI Support Bot' }}\""
@@ -113,7 +126,7 @@ jobs:
           }
           echo "✓ Docker Compose deployment completed"
 
-      - name: 6. Run Database Migrations
+      - name: 7. Run Database Migrations
         run: |
           # Wait for services to be ready
           sleep 10
@@ -121,7 +134,7 @@ jobs:
           # Run migrations
           docker exec ai-support-bot php artisan migrate --force
 
-      - name: 7. Verify Deployment
+      - name: 8. Verify Deployment
         run: |
           echo "=== Container Status ==="
           docker ps --filter "name=ai-support-bot"
