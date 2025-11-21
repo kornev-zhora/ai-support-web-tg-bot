@@ -32,17 +32,19 @@ services:
       - APP_URL=${APP_URL}
       - APP_PORT=80
 
-      # Database - PostgreSQL (External)
+      # Database - PostgreSQL (External on host)
+      # Use host.docker.internal to access services on the host from container
       - DB_CONNECTION=${DB_CONNECTION:-pgsql}
-      - DB_HOST=${DB_HOST:-localhost}
+      - DB_HOST=${DB_HOST:-host.docker.internal}
       - DB_PORT=${DB_PORT:-5432}
       - DB_DATABASE=${DB_DATABASE:-ai-bot}
       - DB_USERNAME=${DB_USERNAME:-github}
       - DB_PASSWORD=${DB_PASSWORD}
 
-      # Redis connection (External)
+      # Redis connection (External on host)
+      # Use host.docker.internal to access services on the host from container
       - REDIS_CLIENT=phpredis
-      - REDIS_HOST=${REDIS_HOST:-localhost}
+      - REDIS_HOST=${REDIS_HOST:-host.docker.internal}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT:-6379}
 
@@ -70,10 +72,13 @@ services:
     # No container dependencies - using external services
     depends_on: !reset {}
 
-    # Use host network to connect to external PostgreSQL and Redis
-    # !reset removes the networks array from base compose.yaml to avoid conflict with network_mode
+    # Remove networks from base compose.yaml
+    # Docker will use default bridge network with host.docker.internal support
     networks: !reset []
-    network_mode: host
+
+    # Add extra_hosts to enable host.docker.internal on Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     restart: unless-stopped
 
