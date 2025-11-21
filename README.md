@@ -146,14 +146,16 @@ VITE_TELEGRAM_BOT_USERNAME="your_bot_username"
 ### 3. Start Docker Containers
 
 ```bash
-./vendor/bin/sail up -d
+docker compose up -d
 ```
 
 ### 4. Install Dependencies
 
+> **Note**: Sail is not ready to use initially. You need to install dependencies first using Docker Compose exec, then you can use Sail for subsequent commands.
+
 ```bash
-# Install PHP dependencies
-./vendor/bin/sail composer install
+# Install PHP dependencies (Sail not available yet)
+docker compose exec ai-support-bot composer install
 
 # Install Node.js dependencies
 ./vendor/bin/sail npm install
