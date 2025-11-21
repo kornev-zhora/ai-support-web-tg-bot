@@ -7,15 +7,20 @@ services:
     # Use pre-built production image instead of building locally
     image: ${DOCKER_IMAGE:-sergeyphpdevua/ai-support-bot:latest}
     build: null  # Disable build, use image from Docker Hub
+    container_name: ai-support-bot
 
     # Production ports (only HTTP, no Vite dev server)
     ports:
       - '${APP_PORT:-80}:80'
 
-    # Production volumes - use named volumes for data persistence
-    # Named volumes preserve container data without wiping out application files
+    # Production volumes - mount specific storage subdirectories to preserve data
+    # This approach keeps application code intact while persisting user data
     volumes:
-      - storage-data:/var/www/html/storage
+      - storage-app:/var/www/html/storage/app
+      - storage-logs:/var/www/html/storage/logs
+      - storage-framework-cache:/var/www/html/storage/framework/cache
+      - storage-framework-sessions:/var/www/html/storage/framework/sessions
+      - storage-framework-views:/var/www/html/storage/framework/views
 
     # Production environment variables
     environment:
@@ -62,6 +67,7 @@ services:
       - MAIL_MAILER=${MAIL_MAILER:-log}
 
     # No container dependencies - using external services
+    depends_on: {}
     network_mode: host
 
     restart: unless-stopped
@@ -76,6 +82,15 @@ services:
 # PostgreSQL and Redis are external services
 
 # Named volumes for data persistence
+# Mounting specific subdirectories instead of entire storage directory
 volumes:
-  storage-data:
+  storage-app:
+    driver: local
+  storage-logs:
+    driver: local
+  storage-framework-cache:
+    driver: local
+  storage-framework-sessions:
+    driver: local
+  storage-framework-views:
     driver: local

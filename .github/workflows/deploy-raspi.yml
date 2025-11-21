@@ -57,37 +57,60 @@ jobs:
           APP_PORT=${{ vars.APP_PORT || 8060 }}
           WWWUSER=${{ vars.WWWUSER || 1000 }}
           WWWGROUP=${{ vars.WWWGROUP || 1000 }}
-          
+
           DB_CONNECTION=pgsql
           DB_HOST=${{ vars.DB_HOST || 'localhost' }}
           DB_PORT=${{ vars.DB_PORT || '5432' }}
           DB_DATABASE=${{ vars.DB_DATABASE || 'ai-bot' }}
           DB_USERNAME=${{ vars.DB_USERNAME || 'github' }}
           DB_PASSWORD=${{ vars.DB_PASSWORD }}
-          
+
           REDIS_HOST=${{ vars.REDIS_HOST || 'localhost' }}
           REDIS_PORT=${{ vars.REDIS_PORT || '6379' }}
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          
+
           GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
           GEMINI_MODEL="${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}"
           TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}"
           TELEGRAM_BOT_USERNAME="${{ vars.TELEGRAM_BOT_USERNAME }}"
-          
+
           DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ env.IMAGE_TAG }}
           EOF
-          
+
           # Copy override file and start services
           cp compose.override.raspberry.yml compose.override.yml
           docker compose up -d
 
-      - name: 6. Run Database Migrations
+          # Wait for container to be fully up
+          echo "Waiting for container to start..."
+          for i in {1..30}; do
+            if docker exec ai-support-bot test -f /var/www/html/artisan; then
+              echo "Container is ready"
+              break
+            fi
+            echo "Attempt $i/30: Waiting..."
+            sleep 2
+          done
+
+          # Ensure storage directories have correct permissions
+          docker exec ai-support-bot chown -R sail:sail /var/www/html/storage
+          docker exec ai-support-bot chmod -R 775 /var/www/html/storage
+
+      - name: 6. Run Database Migrations and Cache
         run: |
-          # Wait for services to be ready
-          sleep 10
+          # Clear and optimize caches
+          docker exec ai-support-bot php artisan config:clear || true
+          docker exec ai-support-bot php artisan cache:clear || true
+          docker exec ai-support-bot php artisan route:clear || true
+          docker exec ai-support-bot php artisan view:clear || true
 
           # Run migrations
           docker exec ai-support-bot php artisan migrate --force
+
+          # Optimize for production
+          docker exec ai-support-bot php artisan config:cache
+          docker exec ai-support-bot php artisan route:cache
+          docker exec ai-support-bot php artisan view:cache
 
       - name: 7. Verify Deployment
         run: |
