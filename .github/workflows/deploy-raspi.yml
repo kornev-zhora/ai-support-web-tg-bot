@@ -129,7 +129,66 @@ jobs:
           docker exec ai-support-bot php artisan route:cache
           docker exec ai-support-bot php artisan view:cache
 
-      - name: 8. Verify Deployment
+      - name: 8. Test Redis Connection
+        run: |
+          echo "=== Testing Redis Connection ==="
+
+          # Test Redis ping using Laravel's Redis facade
+          REDIS_PING=$(docker exec ai-support-bot php artisan tinker --execute="
+            use Illuminate\Support\Facades\Redis;
+            try {
+              \$pong = Redis::ping();
+              echo is_bool(\$pong) && \$pong ? 'PONG' : (is_string(\$pong) ? \$pong : 'UNKNOWN');
+            } catch (Exception \$e) {
+              echo 'ERROR: ' . \$e->getMessage();
+            }
+            exit;
+          " 2>&1 | grep -E "^(PONG|ERROR|UNKNOWN)" | head -1)
+
+          echo "Redis Ping Response: $REDIS_PING"
+
+          if echo "$REDIS_PING" | grep -qE "PONG"; then
+            echo "✅ Redis connection successful"
+          else
+            echo "❌ Redis connection failed!"
+            echo "Redis Response: $REDIS_PING"
+
+            echo ""
+            echo "Troubleshooting tips:"
+            echo "1. Check REDIS_HOST in .env (current: ${{ vars.REDIS_HOST || 'localhost' }})"
+            echo "2. Verify Redis service is running: sudo systemctl status redis"
+            echo "3. Check Redis accepts connections: redis-cli ping"
+            echo "4. For Docker host access, REDIS_HOST should be 'host.docker.internal' or '172.17.0.1'"
+
+            exit 1
+          fi
+
+          # Test Redis read/write
+          echo ""
+          echo "Testing Redis read/write operations..."
+          REDIS_RW=$(docker exec ai-support-bot php artisan tinker --execute="
+            use Illuminate\Support\Facades\Redis;
+            try {
+              Redis::set('deploy_test', 'success');
+              \$result = Redis::get('deploy_test');
+              Redis::del('deploy_test');
+              echo \$result === 'success' ? 'SUCCESS' : 'FAILED';
+            } catch (Exception \$e) {
+              echo 'ERROR: ' . \$e->getMessage();
+            }
+            exit;
+          " 2>&1 | grep -E "^(SUCCESS|FAILED|ERROR)" | head -1)
+
+          echo "Redis Read/Write Response: $REDIS_RW"
+
+          if echo "$REDIS_RW" | grep -q "SUCCESS"; then
+            echo "✅ Redis read/write operations working"
+          else
+            echo "⚠️  Redis read/write test failed: $REDIS_RW"
+            exit 1
+          fi
+
+      - name: 9. Verify Deployment
         run: |
           echo "=== Container Status ==="
           docker ps --filter "name=ai-support-bot"
@@ -137,6 +196,10 @@ jobs:
           echo ""
           echo "=== Application Health ==="
           docker exec ai-support-bot php artisan --version || echo "Laravel not responding"
+
+          echo ""
+          echo "=== Database Connection ==="
+          docker exec ai-support-bot php artisan db:show | grep -E "Connection|Database" || echo "Database check skipped"
 
           echo ""
           echo "✅ Successfully deployed tag ${{ env.IMAGE_TAG }} on Raspberry Pi"
