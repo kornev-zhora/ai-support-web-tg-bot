@@ -1,5 +1,5 @@
 services:
-    laravel.test:
+    ai-support-bot:
         # Set explicit container name for easier management
         container_name: ai-support-bot
         build:
