@@ -146,14 +146,16 @@ VITE_TELEGRAM_BOT_USERNAME="your_bot_username"
 ### 3. Start Docker Containers
 
 ```bash
-./vendor/bin/sail up -d
+docker compose up -d
 ```
 
 ### 4. Install Dependencies
 
+> **Note**: Sail is not ready to use initially. You need to install dependencies first using Docker Compose exec, then you can use Sail for subsequent commands.
+
 ```bash
-# Install PHP dependencies
-./vendor/bin/sail composer install
+# Install PHP dependencies (Sail not available yet)
+docker compose exec ai-support-bot composer install
 
 # Install Node.js dependencies
 ./vendor/bin/sail npm install
@@ -581,6 +583,84 @@ Or adjust `WWWUSER` and `WWWGROUP` in `.env` to match your system IDs.
 ./vendor/bin/sail artisan optimize:clear
 ./vendor/bin/sail composer dump-autoload
 ```
+
+### Redis Connection Issues
+
+If you see `Connection refused` errors related to Redis:
+
+**Problem:** Docker container cannot connect to Redis on host machine.
+
+**Solution 1: Use Host Redis (Development)**
+
+Update `.env` to allow Docker to reach host Redis:
+
+```env
+REDIS_HOST=host.docker.internal
+```
+
+Restart the container:
+
+```bash
+./vendor/bin/sail restart
+```
+
+**Solution 2: Use Docker Redis Container (Recommended)**
+
+Stop host Redis and use the containerized version:
+
+```bash
+# Stop host Redis
+sudo systemctl stop redis-server
+sudo systemctl disable redis-server
+
+# Ensure .env uses container Redis
+REDIS_HOST=redis
+
+# Restart containers
+./vendor/bin/sail down && ./vendor/bin/sail up -d
+```
+
+**Test Redis Connection:**
+
+```bash
+./vendor/bin/sail artisan tinker
+```
+
+Then run:
+
+```php
+use Illuminate\Support\Facades\Redis;
+
+Redis::ping();
+// Should return: true or "PONG"
+
+Redis::set('test', 'working');
+Redis::get('test');
+// Should return: "working"
+
+Redis::del('test');
+exit
+```
+
+**For Production/Deployment:**
+
+If Redis runs as a service on the host (Ubuntu/Raspberry Pi):
+
+1. Update your environment variables (GitHub secrets/vars):
+   ```
+   REDIS_HOST=host.docker.internal  (or 172.17.0.1)
+   ```
+
+2. Or configure Redis to accept Docker connections:
+   ```bash
+   sudo nano /etc/redis/redis.conf
+   # Change: bind 127.0.0.1 ::1
+   # To: bind 127.0.0.1 ::1 172.17.0.1
+
+   sudo systemctl restart redis-server
+   ```
+
+See [docs/DEPLOYMENT_CHECKS.md](docs/DEPLOYMENT_CHECKS.md) for detailed troubleshooting.
 
 ### GitHub Actions Failing
 

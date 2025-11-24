@@ -1,5 +1,7 @@
 services:
     ai-support-bot:
+        # Set explicit container name for easier management
+        container_name: ai-support-bot
         build:
             context: './docker/8.4'
             dockerfile: Dockerfile
