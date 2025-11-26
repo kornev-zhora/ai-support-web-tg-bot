@@ -8,7 +8,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat&logo=php)](https://php.net)
 
 [![Tests](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml)
-[![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
+[![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg?event=release)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
 [![Latest Release](https://img.shields.io/github/v/release/BorschCode/ai-support-web-tg-bot)](https://github.com/BorschCode/ai-support-web-tg-bot/releases/latest)
 [![Coverage Status](https://coveralls.io/repos/github/BorschCode/ai-support-web-tg-bot/badge.svg?branch=main)](https://coveralls.io/github/BorschCode/ai-support-web-tg-bot?branch=main)
 

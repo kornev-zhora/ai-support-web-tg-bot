@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest # Використовуємо GitHub-hosted runner для збірки
     environment: raspberry
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - name: Checkout Code
