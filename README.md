@@ -7,8 +7,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?style=flat&logo=postgresql)](https://www.postgresql.org)
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat&logo=php)](https://php.net)
 
-[![Tests](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml)
-[![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
+[![Tests](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/tests.yml)
+[![Build & Deploy](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml/badge.svg?event=release)](https://github.com/BorschCode/ai-support-web-tg-bot/actions/workflows/build-deploy.yml)
 [![Coverage Status](https://coveralls.io/repos/github/BorschCode/ai-support-web-tg-bot/badge.svg?branch=main)](https://coveralls.io/github/BorschCode/ai-support-web-tg-bot?branch=main)
 
 An intelligent AI-powered support bot built with Laravel 12, Vue.js 3, and Google Gemini API. This application provides seamless integration with Telegram to deliver automated customer support with cutting-edge AI capabilities.
