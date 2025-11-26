@@ -36,7 +36,10 @@ jobs:
           context: .
           file: ./docker/production/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ github.sha }}, ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:${{ github.event.release.tag_name }}
+            ${{ secrets.DOCKER_USERNAME }}/ai-support-bot:latest
           platforms: linux/arm/v7,linux/arm64 # Support both Raspberry Pi 2 (ARMv7) and newer models (ARM64)
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-support-bot:buildcache,mode=max

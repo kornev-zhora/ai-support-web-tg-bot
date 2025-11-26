@@ -359,15 +359,44 @@ After seeding the database, log in with:
 - **Password**: `password`
 - **Name**: Test User
 
-### Setting Up Telegram Webhook
+### Setting Up Telegram Bot
 
-To connect your bot to the application:
+After creating your bot with [@BotFather](https://t.me/BotFather), you need to register it in the application using the Telegraph package.
+
+#### 1. Register Bot in Database
+
+```bash
+./vendor/bin/sail artisan telegraph:new-bot
+```
+
+This command will:
+- Prompt you for the bot token
+- Create a new bot record in the database
+- Set up the bot configuration
+
+#### 2. Set Webhook URL
+
+After registering the bot, set up the webhook to receive updates:
 
 ```bash
 ./vendor/bin/sail artisan telegram:set-webhook
 ```
 
 This will configure Telegram to send updates to your application.
+
+#### 3. Verify Bot Setup
+
+You can verify your bot is properly configured:
+
+```bash
+# List all registered bots
+./vendor/bin/sail artisan telegraph:list-bots
+
+# Check webhook status
+./vendor/bin/sail artisan telegraph:webhook-debug
+```
+
+> **Note**: For more detailed information about Telegraph bot setup, see the [official documentation](https://docs.defstudio.it/telegraph/v1/quickstart/register-new-bot).
 
 ## 💻 Development
 
